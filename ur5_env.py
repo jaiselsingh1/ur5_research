@@ -1,6 +1,7 @@
 from os import path
 import numpy as np
 import mujoco
+import gymnasium as gym
 
 from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
@@ -13,6 +14,11 @@ DEFAULT_CAMERA_CONFIG = {
     "elevation": -35.0,
     "lookat": np.array([-0.2, 0.5, 2.0]),
 }"""
+
+gym.register(
+    id ="UR5-v0",
+    entry_point ="ur5_env:ur5",
+)
 
 # custom MuJoCo environment in Gymnasium
 class ur5(MujocoEnv):
@@ -39,7 +45,7 @@ class ur5(MujocoEnv):
             model_path
         )
 
-        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32)
+        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
 
         # the super here is the MuJoCo env vs the Gymnasium Env
         super().__init__(

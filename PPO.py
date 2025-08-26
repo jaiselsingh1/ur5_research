@@ -1,9 +1,9 @@
 
-
 import mujoco
 import numpy as np
 import ur5_env 
 
+import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.ppo.policies import MlpPolicy
 from stable_baselines3.common.base_class import BaseAlgorithm
@@ -122,10 +122,8 @@ def record_video(env_id, model, video_length=500, prefix="", video_folder="video
     eval_env.close()
 
 
-record_video(env, model, video_length=500, prefix="ppo-ur5")
+record_video("UR5-v0", model, video_length=500, prefix="ppo-ur5")
 show_videos("videos", prefix="ppo")
-
-
 
 model = PPO('MlpPolicy', env, verbose=1).learn(1000)
 
