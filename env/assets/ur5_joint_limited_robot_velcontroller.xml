@@ -1,0 +1,120 @@
+<mujoco model="ur5">
+  <compiler angle="radian" meshdir="../ur_description/meshes/ur5/"/> <!-- this means autolimits=true -->
+  <!-- <compiler angle="radian" meshdir="../ur_description/meshes/ur5/" autolimits="true" inertiafromgeom="false"/> -->
+  <!--<compiler angle="radian" meshdir="../meshes/ur5/"/>-->
+  <option gravity="0. 0. -9.81"/>
+  <option integrator="implicitfast"/>
+
+  <!-- inspired by mujoco native UR5e files (cf. `ur5_joint_limited_robot.xml`)  -->
+  <default>
+    <!-- <geom type="mesh" material="jointgray"/>
+    <position dampratio="1" inheritrange="1"/>
+    <joint stiffness="0" frictionloss="1"/> -->
+    <joint range="-6.28319 6.28319" damping="0" frictionloss="0" armature="0.1"/>
+    <velocity ctrlrange="-6.28319 6.28319" />
+  </default>
+
+
+
+  <asset>
+    <material name="black" rgba="0.033 0.033 0.033 1"/>
+    <material name="jointgray" rgba="0.278 0.278 0.278 1"/>
+    <material name="linkgray" rgba="0.82 0.82 0.82 1"/>
+    <material name="urblue" rgba="0.49 0.678 0.8 1"/>
+
+    <mesh name="base" content_type="model/stl" file="collision/base.stl"/>
+    <mesh name="shoulder" content_type="model/stl" file="collision/shoulder.stl"/>
+    <mesh name="upperarm" content_type="model/stl" file="collision/upperarm.stl"/>
+    <mesh name="forearm" content_type="model/stl" file="collision/forearm.stl"/>
+    <mesh name="wrist1" content_type="model/stl" file="collision/wrist1.stl"/>
+    <mesh name="wrist2" content_type="model/stl" file="collision/wrist2.stl"/>
+    <mesh name="wrist3" content_type="model/stl" file="collision/wrist3.stl"/>
+  </asset>
+
+  <worldbody>
+    <body name="base_link">
+      <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="4" diaginertia="0.0072 0.00443333 0.00443333"/>
+      <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="base"/>
+      <body name="shoulder_link" pos="0 0 0.089159">
+        <inertial pos="0 0 0" mass="3.7" diaginertia="0.0102675 0.0102675 0.00666"/>
+        <joint name="shoulder_pan_joint" pos="0 0 0" axis="0 0 1"  />
+        <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="shoulder"/>
+        <!-- <body name="upper_arm_link" pos="0 0.13585 0" quat="0.7071067812 0 0.7071067812 0"> -->
+        <body name="upper_arm_link" pos="0 0.13585 0" quat="0.70710678118654752440084436210484903928483593768847403658833986899536623923105351942519376716382078636750692311545614851246241802792536860632206074854996791570661133296375279637789997525057639103028574 0 0.70710678118654752440084436210484903928483593768847403658833986899536623923105351942519376716382078636750692311545614851246241802792536860632206074854996791570661133296375279637789997525057639103028574 0">
+          <inertial pos="0 0 0.28" mass="8.393" diaginertia="0.226891 0.226891 0.0151074"/>
+          <joint name="shoulder_lift_joint" pos="0 0 0" axis="0 1 0"  />
+          <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="upperarm"/>
+          <body name="forearm_link" pos="0 -0.1197 0.425">
+            <inertial pos="0 0 0.25" mass="2.275" diaginertia="0.0494433 0.0494433 0.004095"/>
+            <joint name="elbow_joint" pos="0 0 0" axis="0 1 0"  />
+            <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="forearm"/>
+            <body name="wrist_1_link" pos="0 0 0.39225" quat="0.7071067812 0 0.7071067812 0">
+              <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="1.219" diaginertia="0.21942 0.111173 0.111173"/>
+              <joint name="wrist_1_joint" pos="0 0 0" axis="0 1 0"  />
+              <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist1"/>
+              <body name="wrist_2_link" pos="0 0.093 0">
+                <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="1.219" diaginertia="0.21942 0.111173 0.111173"/>
+                <joint name="wrist_2_joint" pos="0 0 0" axis="0 0 1"  />
+                <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist2"/>
+                <body name="wrist_3_link" pos="0 0 0.09465">
+                  <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.1879" diaginertia="0.033822 0.0171365 0.0171365"/>
+                  <joint name="wrist_3_joint" pos="0 0 0" axis="0 1 0"  />
+                  <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist3"/>
+                  <body name="ee_link" pos="0 0.0823 0" quat="0.7071067812 0 0 0.7071067812">
+                    <geom size="0.005 0.005 0.005" pos="-0.01 0 0" type="box" rgba="1 0 0 1"/>
+                    <body name="ee_finger" euler="0 1.5707963268 0">
+                      <geom type="cylinder" size="0.014 0.0755"  rgba="1.0 0.6 0.12 1.0" pos="0 0 0.0755"/>
+                      <inertial pos="0 0 0" mass="0.300" diaginertia="0.0005854 0.0005854 0.000029431"/>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <!-- CUSTOM added 2025-05-19 from mujoco native UR5e files (https://github.com/google-deepmind/mujoco_menagerie/tree/main/universal_robots_ur5e) -->
+  <actuator>
+    <!-- <general class="size3" name="shoulder_pan" joint="shoulder_pan_joint"/>
+    <general class="size3" name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <general class="size3_limited" name="elbow" joint="elbow_joint"/>
+    <general class="size1" name="wrist_1" joint="wrist_1_joint"/>
+    <general class="size1" name="wrist_2" joint="wrist_2_joint"/>
+    <general class="size1" name="wrist_3" joint="wrist_3_joint"/> -->
+    <!-- This works like general does >>> -->
+    <velocity kv="2000" forcerange="-150 150" name="shoulder_pan" ctrlrange="-3.15 3.15" joint="shoulder_pan_joint"/>
+    <velocity kv="2000" forcerange="-150 150" ctrlrange="-3.15 3.15" name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <velocity kv="2000" forcerange="-150 150" ctrlrange="-3.15 3.15" name="elbow" joint="elbow_joint"/>
+    <velocity kv="500" forcerange="-28 28" ctrlrange="-3.2 3.2" name="wrist_1" joint="wrist_1_joint"/>
+    <velocity kv="500" forcerange="-28 28" ctrlrange="-3.2 3.2" name="wrist_2" joint="wrist_2_joint"/>
+    <velocity kv="500" forcerange="-28 28" ctrlrange="-3.2 3.2" name="wrist_3" joint="wrist_3_joint"/>
+    <!-- <<< This works like general does -->
+    <!-- <velocity kv="2000" forcerange="-200 200" name="shoulder_pan" joint="shoulder_pan_joint"/>
+    <velocity kv="2000" forcerange="-200 200" name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <velocity kv="2000" forcerange="-200 200" name="elbow" joint="elbow_joint"/>
+    <velocity kv="500" forcerange="-200 200" name="wrist_1" joint="wrist_1_joint"/>
+    <velocity kv="500" forcerange="-200 200" name="wrist_2" joint="wrist_2_joint"/>
+    <velocity kv="500" forcerange="-200 200" name="wrist_3" joint="wrist_3_joint"/> -->
+    <!-- <velocity kv="2000" ctrlrange="-6.2831 6.2831" name="shoulder_pan" joint="shoulder_pan_joint"/>
+    <velocity kv="2000" ctrlrange="-6.2831 6.2831" name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <velocity kv="2000" ctrlrange="-3.1415 3.1415" name="elbow" joint="elbow_joint"/>
+    <velocity kv="500" ctrlrange="-6.2831 6.2831" name="wrist_1" joint="wrist_1_joint"/>
+    <velocity kv="500" ctrlrange="-6.2831 6.2831" name="wrist_2" joint="wrist_2_joint"/>
+    <velocity kv="500" ctrlrange="-6.2831 6.2831" name="wrist_3" joint="wrist_3_joint"/>  -->
+    <!-- <velocity  forcerange="-150 150" name="shoulder_pan" joint="shoulder_pan_joint"/>
+    <velocity  forcerange="-150 150" name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <velocity  forcerange="-150 150" name="elbow" joint="elbow_joint"/>
+    <velocity   forcerange="-28 28" name="wrist_1" joint="wrist_1_joint"/>
+    <velocity   forcerange="-28 28" name="wrist_2" joint="wrist_2_joint"/>
+    <velocity   forcerange="-28 28" name="wrist_3" joint="wrist_3_joint"/> -->
+    <!-- <position name="shoulder_pan" joint="shoulder_pan_joint"/>
+    <position name="shoulder_lift" joint="shoulder_lift_joint"/>
+    <position name="elbow" joint="elbow_joint"/>
+    <position name="wrist_1" joint="wrist_1_joint"/>
+    <position name="wrist_2" joint="wrist_2_joint"/>
+    <position name="wrist_3" joint="wrist_3_joint"/> -->
+  </actuator>
+</mujoco>

@@ -1,0 +1,50 @@
+<mujoco model="ur5e scene">
+  <!-- <include file="ur5e_test.xml"/> -->
+  <!-- <include file="../ur_description/urdf/ur5_joint_limited_robot.xml"/> -->
+  <include file="./ur5_joint_limited_robot_velcontroller.xml"/>
+
+  <default>
+    <geom solref="0.005 1"/>
+  </default>
+
+  <!-- center of main camera-->
+  <statistic center="0.325 -0.105 -0.07" extent="1."/>
+  <!-- <statistic center="-0.6 0. 0.2" extent="0.8"/> -->
+
+  <visual>
+    <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0 0 0" active="1"/>
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="179" elevation="-48" fovy="42" offwidth="1280" offheight="720"/>
+    <!-- <global azimuth="90" elevation="45"/> -->
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+
+  <worldbody>
+    <camera name="side_cam" pos="0.502 -0.9 0" xyaxes="1 0 0 0 0 1"/>
+    <!-- equivalent to free camera (got parameters via utils function, spherical coords to 3d coords conversion) but defining here for easy access in code -->
+    <!-- <camera name="birdseye_tilted_cam" pos="0 0  1." euler="-1.57079633  1.57079633  0.        " fovy="42"/> -->
+    <!-- <camera name="birdseye_tilted_cam" pos="0.74303164 -0.01296967  0.66913061" xyaxes="0.66918689  0.         -0.74309414 0.00963768 0.99991589 0.00867913" fovy="42"/> -->
+    <!--  CLOSE: -->
+    <!-- <camera name="birdseye_tilted_cam" pos="0.74303164 -0.01296967  0.66913061" xyaxes="0.66918689  0.         -0.74309414 0.00963768 0.99991589 0.00867913" fovy="42"/> -->
+    <!-- <camera name="birdseye_tilted_cam" pos="1.43954746 -0.1244545   0.93369591" xyaxes="0.01745241  0.9998477  0 -0.66902869  0.01167794  0.74314483" fovy="42"/> -->
+    <camera name="birdseye_tilted_cam" pos="1.32854304 -0.12251691  1.04471724" xyaxes="0.01745241  0.9998477  -0.         -0.74303164  0.01296967  0.66913061" fovy="42"/>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" pos="0 0 -1"/>
+    <body pos="0.502 0.0 -0.18">
+      <geom name="table" type="box" size="0.3 0.6 0.03" mass="2.7" rgba="0.5 0.5 0.5 0.3" condim="6"/>
+       <inertial pos="0 0 0" mass="2.7" diaginertia="0.003406 0.003406 0.004896"/>
+    </body>
+    <body name="tape_roll" pos="0.502 -0.05 -0.1175">
+    <!-- <body name="tape_roll" pos="0.502 -0.5 -0.1175"> -->
+      <freejoint name="root"/>
+      <geom name="tape" type="cylinder" size="0.06 0.0325" mass="0.270" rgba="0.72 0.72 0.25 1.0" condim="6"/>
+      <inertial pos="0 0 0" mass="0.270" diaginertia="0.0003406 0.0003406 0.0004896"/>
+    </body>
+  </worldbody>
+</mujoco>
