@@ -45,7 +45,7 @@ class ur5(MujocoEnv):
             model_path
         )
 
-        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
+        observation_space = spaces.Box(low=-50.0, high=50.0, shape=(25,), dtype=np.float32) # changed the bounds to make it more realistic?
 
         # the super here is the MuJoCo env vs the Gymnasium Env
         super().__init__(
@@ -85,13 +85,12 @@ class ur5(MujocoEnv):
         obs = self._get_obs()
         reward = self.get_reward()
 
-
         return obs, reward, False, False, {}
 
     def _get_obs(self):
         qpos, qvel = self.data.qpos, self.data.qvel
 
-        return np.concatenate((qpos.copy(), qvel.copy()))
+        return np.concatenate((qpos.copy(), qvel.copy())).astype(np.float32)
 
     def reset_model(self):
         qpos = self.init_qpos
