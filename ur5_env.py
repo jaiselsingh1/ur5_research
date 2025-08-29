@@ -45,7 +45,7 @@ class ur5(MujocoEnv):
             model_path
         )
 
-        observation_space = spaces.Box(low=-50.0, high=50.0, shape=(25,), dtype=np.float32) # changed the bounds to make it more realistic?
+        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
 
         # the super here is the MuJoCo env vs the Gymnasium Env
         super().__init__(
@@ -60,11 +60,13 @@ class ur5(MujocoEnv):
         self.init_qpos = self.data.qpos
         self.init_qvel = self.data.qvel
 
-        self.act_mid = np.zeros(6)
-        self.act_rng = np.ones(6) * 2
+        num_actuators = 6 
+
+        self.act_mid = np.zeros(num_actuators)
+        self.act_rng = np.ones(num_actuators) * 2
 
         # this makes more sense when you scale it here vs the neural network because then you don't have to write that scalar multiplier for each output
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
 
     def step(self, action):
         action = np.clip(action, -1.0, 1.0)
@@ -85,19 +87,33 @@ class ur5(MujocoEnv):
         obs = self._get_obs()
         reward = self.get_reward()
 
-        return obs, reward, False, False, {}
+        # add termination conditions based on the Task 
+        terminated = False
+        truncated = False
+
+        return obs, reward, terminated, truncated, {}
 
     def _get_obs(self):
         qpos, qvel = self.data.qpos, self.data.qvel
-
         return np.concatenate((qpos.copy(), qvel.copy())).astype(np.float32)
 
     def reset_model(self):
-        qpos = self.init_qpos
-        qvel = self.init_qvel
+        # Reset UR5 to initial position with some randomization
+        qpos = self.init_qpos.copy()
+        qvel = self.init_qvel.copy()
+        
+        # Add small random noise to UR5 joint positions (first 6)
+        qpos[:6] += np.random.uniform(low=-0.1, high=0.1, size=6)
+        
+        # Randomize tape roll position slightly
+        tape_roll_base_pos = np.array([0.502, -0.05, -0.1175])  # From your XML
+        qpos[6:9] = tape_roll_base_pos + np.random.uniform(low=-0.05, high=0.05, size=3)
+        
+        # Reset tape roll orientation (quaternion) - keep it upright
+        qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # w, x, y, z quaternion
+        
         self.set_state(qpos, qvel)
         obs = self._get_obs()
-
         return obs
 
     def get_reward(self):
@@ -106,14 +122,18 @@ class ur5(MujocoEnv):
         #end_effector_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "ee_finger")
 
         # enum is a data structure that has different types, that has named access
+        try:
+            tape_roll_xpos = self.data.body("tape_roll").xpos
+            ee_finger_xpos = self.data.body("ee_finger").xpos
 
-        tape_roll_xpos = self.data.body("tape_roll").xpos
-        ee_finger_xpos = self.data.body("ee_finger").xpos
+            pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+            reward = -10 * pos_error
 
-        pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-        reward = -10 * pos_error
-
-        return reward
+            return reward
+        
+        except Exception as e:
+            print(f"Reward collection error: {e}")
+            return 0.0 
 
 
 """
