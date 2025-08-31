@@ -1,5 +1,6 @@
 <mujoco model="ur5">
-  <compiler angle="radian" meshdir="../ur_description/meshes/ur5/"/> <!-- this means autolimits=true -->
+  <!--compiler angle="radian" meshdir="../ur_description/meshes/ur5/"/> < this means autolimits=true -->
+  <compiler angle="radian" meshdir="./"/>
   <!-- <compiler angle="radian" meshdir="../ur_description/meshes/ur5/" autolimits="true" inertiafromgeom="false"/> -->
   <!--<compiler angle="radian" meshdir="../meshes/ur5/"/>-->
   <option gravity="0. 0. -9.81"/>
