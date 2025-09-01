@@ -38,7 +38,7 @@ def main():
         verbose=1,
         tensorboard_log=log_dir,
         learning_rate=3e-4,
-        n_steps=2048,
+        n_steps=2, # make this shorter, this is the core bottleneck
         batch_size=64,
         n_epochs=10,
         # Optional: adjust network architecture if needed
@@ -61,7 +61,7 @@ def main():
     
     # Train the model
     model.learn(
-        total_timesteps=50000,  # Adjust based on your task complexity
+        total_timesteps=2, # also make this small. this is the compute invoked per inner loop
         callback=eval_callback,
         tb_log_name="ppo_run"
     )
