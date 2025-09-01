@@ -5,24 +5,42 @@ import mujoco.viewer
 m = mujoco.MjModel.from_xml_path('./env/assets/scene.xml')
 d = mujoco.MjData(m)
 
-with mujoco.viewer.launch_passive(m, d) as viewer:
-  # Close the viewer automatically after 30 wall-seconds.
-  start = time.time()
-  while viewer.is_running() and time.time() - start < 30:
-    step_start = time.time()
+# Try to use the viewer, but fall back to headless simulation if it fails
+try:
+    with mujoco.viewer.launch_passive(m, d) as viewer:
+        # Close the viewer automatically after 30 wall-seconds.
+        start = time.time()
+        while viewer.is_running() and time.time() - start < 30:
+            step_start = time.time()
 
-    # mj_step can be replaced with code that also evaluates
-    # a policy and applies a control signal before stepping the physics.
-    mujoco.mj_step(m, d)
+            # mj_step can be replaced with code that also evaluates
+            # a policy and applies a control signal before stepping the physics.
+            mujoco.mj_step(m, d)
 
-    # Example modification of a viewer option: toggle contact points every two seconds.
-    with viewer.lock():
-      viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
+            # Example modification of a viewer option: toggle contact points every two seconds.
+            with viewer.lock():
+                viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(d.time % 2)
 
-    # Pick up changes to the physics state, apply perturbations, update options from GUI.
-    viewer.sync()
+            # Pick up changes to the physics state, apply perturbations, update options from GUI.
+            viewer.sync()
 
-    # Rudimentary time keeping, will drift relative to wall clock.
-    time_until_next_step = m.opt.timestep - (time.time() - step_start)
-    if time_until_next_step > 0:
-      time.sleep(time_until_next_step)
+            # Rudimentary time keeping, will drift relative to wall clock.
+            time_until_next_step = m.opt.timestep - (time.time() - step_start)
+            if time_until_next_step > 0:
+                time.sleep(time_until_next_step)
+except RuntimeError as e:
+    if "mjpython" in str(e):
+        print("Viewer requires mjpython on macOS. Running headless simulation instead...")
+        # Run headless simulation for 30 seconds
+        start = time.time()
+        while time.time() - start < 30:
+            step_start = time.time()
+            mujoco.mj_step(m, d)
+            print(f"Time: {d.time:.2f}s, qpos: {d.qpos}")
+
+            # Rudimentary time keeping
+            time_until_next_step = m.opt.timestep - (time.time() - step_start)
+            if time_until_next_step > 0:
+                time.sleep(time_until_next_step)
+    else:
+        raise e
