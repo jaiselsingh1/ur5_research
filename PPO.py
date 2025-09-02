@@ -1,40 +1,50 @@
 import mujoco
 import gymnasium as gym
+
 import ur5_env  # this runs gym.register for UR5-v0
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.utils import set_random_seed 
+
+import wandb
+from wandb.integration.sb3 import WandbCallback
+
 import os
 from datetime import datetime
+
 
 def create_ur5_env():
     return gym.make("UR5-v0")
 
 def make_env(env_id: str, rank: int, seed: int = 0):
     def _init():
-        env = gym.make(env_id, render_mode=None)  # 🚫 disable human rendering in subprocesses
+        env = gym.make(env_id, render_mode=None)  
         env.reset(seed=seed + rank)
         return env
     set_random_seed(seed)
     return _init
 
-def setup_logging(env_name="ur5_scene"):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = f"./logs/ppo_{env_name}_{timestamp}"
-    os.makedirs(log_dir, exist_ok=True)
-    print(f"Logs: {log_dir}")
-    print(f"TensorBoard: tensorboard --logdir {log_dir}")
-    return log_dir
 
 def main():
+    wandb.init(
+        project="ur5-ppo-training",  
+        config={
+            "env_id": "UR5-v0",
+            "algorithm": "PPO",
+            "n_steps": 1024,
+            "total_timesteps": 10000,
+            "num_cpu": 4
+        }
+    )
+
     env_id = "UR5-v0"
     num_cpu = 4
 
     vec_env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
-    model = PPO("MlpPolicy", vec_env, verbose=1)
-    model.learn(total_timesteps=1000)
+    model = PPO("MlpPolicy", vec_env, n_steps=1024, verbose=1)
+    model.learn(total_timesteps=10000, callback=WandbCallback())
 
     eval_env = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
@@ -43,6 +53,9 @@ def main():
         action, _ = model.predict(obs)
         obs, rewards, dones, info = eval_env.step(action)
         eval_env.render()
+
+    wandb.finish()
+
 
 if __name__ == "__main__":
     main()
