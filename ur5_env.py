@@ -127,8 +127,13 @@ class ur5(MujocoEnv):
             ee_finger_xpos = self.data.body("ee_finger").xpos
 
             pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-            reward = -10 * pos_error
+            reward = -1.0 * pos_error
 
+        
+            # if self.data.time % 1.0 < 0.04:  
+            #     print(f"EE pos: {ee_finger_xpos}")
+            #     print(f"Target pos: {tape_roll_xpos}")
+            #     print(f"Distance: {pos_error:.3f}, Reward: {reward:.2f}")
             return reward
         
         except Exception as e:
