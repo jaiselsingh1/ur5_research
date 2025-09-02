@@ -106,8 +106,8 @@ class ur5(MujocoEnv):
         qpos[:6] += np.random.uniform(low=-0.1, high=0.1, size=6)
         
         # Randomize tape roll position slightly
-        tape_roll_base_pos = np.array([0.502, -0.05, -0.1175])  # From your XML
-        qpos[6:9] = tape_roll_base_pos + np.random.uniform(low=-0.05, high=0.05, size=3)
+        tape_roll_base_pos = np.array([0.502, -0.05, -0.1175])  # from xml
+        # qpos[6:9] = tape_roll_base_pos + np.random.uniform(low=-0.05, high=0.05, size=3)
         
         # Reset tape roll orientation (quaternion) - keep it upright
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # w, x, y, z quaternion
