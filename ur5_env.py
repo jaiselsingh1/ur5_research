@@ -87,9 +87,19 @@ class ur5(MujocoEnv):
         obs = self._get_obs()
         reward = self.get_reward()
 
-        # add termination conditions based on the Task 
-        terminated = False
+        # termination conditions based on the task
+        tape_roll_xpos = self.data.body("tape_roll").xpos
+        ee_finger_xpos = self.data.body("ee_finger").xpos
+        
+        pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+        terminated = pos_error < 0.05  # Success if within 5cm
+
         truncated = False
+        
+        # if not hasattr(self, '_step_count'):
+        #     self._step_count = 0
+        #     self._step_count += 1
+        # truncated = self._step_count >= 5000
 
         return obs, reward, terminated, truncated, {}
 
