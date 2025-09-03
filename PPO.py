@@ -50,6 +50,8 @@ def main():
     model = PPO(
         "MlpPolicy", 
         vec_env, 
+        learning_rate=2e-4,
+        n_epochs=20,
         n_steps=2048, # how many timesteps do you need to do the right behavior 
         verbose=1,
         tensorboard_log="tensorboard_log", 

@@ -1,0 +1,15 @@
+{"time":"2025-09-03T11:55:55.304054-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-03T11:55:55.501509-04:00","level":"INFO","msg":"stream: created new stream","id":"fegd95bl"}
+{"time":"2025-09-03T11:55:55.501549-04:00","level":"INFO","msg":"stream: started","id":"fegd95bl"}
+{"time":"2025-09-03T11:55:55.501556-04:00","level":"INFO","msg":"writer: started","stream_id":"fegd95bl"}
+{"time":"2025-09-03T11:55:55.501571-04:00","level":"INFO","msg":"sender: started","stream_id":"fegd95bl"}
+{"time":"2025-09-03T11:55:55.501553-04:00","level":"INFO","msg":"handler: started","stream_id":"fegd95bl"}
+{"time":"2025-09-03T11:56:07.596479-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-03T11:56:07.597275-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_14\")","namespace":""}
+{"time":"2025-09-03T11:56:07.597519-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_14/events.out.tfevents.1756914957.MacBook-Pro-27.local.68006.0","runPath":"tensorboard_log/PPO_14/events.out.tfevents.1756914957.MacBook-Pro-27.local.68006.0"}
+{"time":"2025-09-03T11:57:43.116333-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000444625}],"total_operations":1}}
+{"time":"2025-09-03T11:57:43.50505-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-03T11:57:43.742891-04:00","level":"INFO","msg":"stream: closing","id":"fegd95bl"}
+{"time":"2025-09-03T11:57:43.74293-04:00","level":"INFO","msg":"handler: closed","stream_id":"fegd95bl"}
+{"time":"2025-09-03T11:57:43.742992-04:00","level":"INFO","msg":"sender: closed","stream_id":"fegd95bl"}
+{"time":"2025-09-03T11:57:43.743008-04:00","level":"INFO","msg":"stream: closed","id":"fegd95bl"}

@@ -1,0 +1,45 @@
+_wandb:
+    value:
+        cli_version: 0.21.3
+        e:
+            emlwqxqp7iyd2yc5nvvl173uewrhdcsu:
+                codePath: PPO.py
+                codePathLocal: PPO.py
+                email: js6897@columbia.edu
+                executable: /Users/jaiselsingh/Desktop/research/.venv/bin/python
+                git:
+                    commit: 788c0092f2f2da533a705f114d99fe54ba848a2f
+                    remote: git@github.com:jaiselsingh1/ur5_research.git
+                host: MacBook-Pro-27.local
+                os: macOS-15.6.1-arm64-arm-64bit
+                program: /Users/jaiselsingh/Desktop/research/PPO.py
+                python: CPython 3.12.5
+                root: /Users/jaiselsingh/Desktop/research
+                startedAt: "2025-09-03T14:50:53.907861Z"
+                writerId: emlwqxqp7iyd2yc5nvvl173uewrhdcsu
+        m: []
+        python_version: 3.12.5
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 16
+                - 35
+            "4": 3.12.5
+            "5": 0.21.3
+            "12": 0.21.3
+            "13": darwin-arm64
+algorithm:
+    value: PPO
+env_id:
+    value: UR5-v0
+log_std_init:
+    value: -1.38
+n_steps:
+    value: 2048
+num_cpu:
+    value: 4
+total_timesteps:
+    value: 100000

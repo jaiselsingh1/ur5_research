@@ -1,0 +1,15 @@
+{"time":"2025-09-03T11:13:38.826356-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-03T11:13:39.144192-04:00","level":"INFO","msg":"stream: created new stream","id":"ekj2sg5c"}
+{"time":"2025-09-03T11:13:39.144224-04:00","level":"INFO","msg":"stream: started","id":"ekj2sg5c"}
+{"time":"2025-09-03T11:13:39.144225-04:00","level":"INFO","msg":"handler: started","stream_id":"ekj2sg5c"}
+{"time":"2025-09-03T11:13:39.144239-04:00","level":"INFO","msg":"sender: started","stream_id":"ekj2sg5c"}
+{"time":"2025-09-03T11:13:39.144243-04:00","level":"INFO","msg":"writer: started","stream_id":"ekj2sg5c"}
+{"time":"2025-09-03T11:13:51.095817-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-03T11:13:51.096619-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_11\")","namespace":""}
+{"time":"2025-09-03T11:13:51.096887-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_11/events.out.tfevents.1756912421.MacBook-Pro-27.local.67242.0","runPath":"tensorboard_log/PPO_11/events.out.tfevents.1756912421.MacBook-Pro-27.local.67242.0"}
+{"time":"2025-09-03T11:15:06.479186-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000615959}],"total_operations":1}}
+{"time":"2025-09-03T11:15:06.955842-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-03T11:15:07.191689-04:00","level":"INFO","msg":"stream: closing","id":"ekj2sg5c"}
+{"time":"2025-09-03T11:15:07.191733-04:00","level":"INFO","msg":"handler: closed","stream_id":"ekj2sg5c"}
+{"time":"2025-09-03T11:15:07.191807-04:00","level":"INFO","msg":"sender: closed","stream_id":"ekj2sg5c"}
+{"time":"2025-09-03T11:15:07.191826-04:00","level":"INFO","msg":"stream: closed","id":"ekj2sg5c"}

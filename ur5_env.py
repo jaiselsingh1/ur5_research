@@ -107,7 +107,6 @@ class ur5(MujocoEnv):
         qpos = self.data.qpos[:6]  # Only UR5 joints
         qvel = self.data.qvel[:6]  # Only UR5 velocities
         
-
         ee_pos = self.data.body("ee_finger").xpos
         target_pos = self.data.body("tape_roll").xpos
         # Calculate relative position and distance

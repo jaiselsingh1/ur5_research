@@ -1,0 +1,15 @@
+Using cpu device
+Traceback (most recent call last):
+  File "/Users/jaiselsingh/Desktop/research/PPO.py", line 100, in <module>
+    main()
+  File "/Users/jaiselsingh/Desktop/research/PPO.py", line 50, in main
+    model = PPO(
+            ^^^^
+  File "/Users/jaiselsingh/Desktop/research/.venv/lib/python3.12/site-packages/stable_baselines3/ppo/ppo.py", line 171, in __init__
+    self._setup_model()
+  File "/Users/jaiselsingh/Desktop/research/.venv/lib/python3.12/site-packages/stable_baselines3/ppo/ppo.py", line 174, in _setup_model
+    super()._setup_model()
+  File "/Users/jaiselsingh/Desktop/research/.venv/lib/python3.12/site-packages/stable_baselines3/common/on_policy_algorithm.py", line 135, in _setup_model
+    self.policy = self.policy_class(  # type: ignore[assignment]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ActorCriticPolicy.__init__() got an unexpected keyword argument 'learning_rate'
