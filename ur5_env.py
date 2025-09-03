@@ -45,7 +45,7 @@ class ur5(MujocoEnv):
             model_path
         )
 
-        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(25,), dtype=np.float32)
+        observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(31,), dtype=np.float32)
 
         # the super here is the MuJoCo env vs the Gymnasium Env
         super().__init__(
@@ -63,7 +63,7 @@ class ur5(MujocoEnv):
         num_actuators = 6 
 
         self.act_mid = np.zeros(num_actuators)
-        self.act_rng = np.ones(num_actuators) * 2
+        self.act_rng = np.ones(num_actuators) * 0.5 # reduced to scale down action scaling 
 
         # this makes more sense when you scale it here vs the neural network because then you don't have to write that scalar multiplier for each output
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
@@ -90,22 +90,46 @@ class ur5(MujocoEnv):
         # termination conditions based on the task
         tape_roll_xpos = self.data.body("tape_roll").xpos
         ee_finger_xpos = self.data.body("ee_finger").xpos
-        
+
         pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
         terminated = pos_error < 0.05  # Success if within 5cm
 
         truncated = False
         
-        # if not hasattr(self, '_step_count'):
-        #     self._step_count = 0
-        #     self._step_count += 1
-        # truncated = self._step_count >= 5000
 
         return obs, reward, terminated, truncated, {}
 
     def _get_obs(self):
-        qpos, qvel = self.data.qpos, self.data.qvel
-        return np.concatenate((qpos.copy(), qvel.copy())).astype(np.float32)
+        qpos = self.data.qpos[:6]  # Only UR5 joints
+        qvel = self.data.qvel[:6]  # Only UR5 velocities
+        
+
+        ee_pos = self.data.body("ee_finger").xpos
+        target_pos = self.data.body("tape_roll").xpos
+        # Calculate relative position and distance
+        relative_pos = target_pos - ee_pos
+        distance = np.linalg.norm(relative_pos)
+
+        # Get end-effector velocity
+        ee_vel = self.data.body("ee_finger").cvel[:3]
+        
+        # Normalized joint limits (how close to limits)
+        joint_limits = np.abs(qpos) / 3.14  # Normalized by ±pi
+        
+        # Concatenate all observations
+        obs = np.concatenate([
+            qpos,                    # 6
+            qvel * 0.1,             # 6 (scaled for stability)
+            ee_pos,                  # 3
+            target_pos,              # 3
+            relative_pos,            # 3
+            [distance],              # 1
+            joint_limits,            # 6
+            ee_vel * 0.1,           # 3 (scaled)
+        ])
+        
+        return obs.astype(np.float32)
+
 
     def reset_model(self):
         # Reset UR5 to initial position with some randomization

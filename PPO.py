@@ -54,7 +54,7 @@ def main():
     for _ in range(1000):
         action, _ = model.predict(obs)
         obs, rewards, dones, info = eval_env.step(action)
-        eval_env.render()
+        # eval_env.render()
 
     wandb.finish()
 
