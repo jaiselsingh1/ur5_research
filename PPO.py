@@ -38,7 +38,8 @@ def main():
             "total_timesteps": 100_000,
             "num_cpu": 4,
             "log_std_init": -1.38, 
-        }
+        }, 
+        sync_tensorboard=True
     )
 
     env_id = "UR5-v0"
@@ -51,6 +52,7 @@ def main():
         vec_env, 
         n_steps=2048, # how many timesteps do you need to do the right behavior 
         verbose=1,
+        tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
             log_std_init=-1.38, 
         )

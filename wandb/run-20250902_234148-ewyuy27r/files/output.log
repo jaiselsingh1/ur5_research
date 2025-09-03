@@ -1,0 +1,239 @@
+Using cpu device
+Logging to tensorboard_log/PPO_1
+-----------------------------
+| time/              |      |
+|    fps             | 6036 |
+|    iterations      | 1    |
+|    time_elapsed    | 1    |
+|    total_timesteps | 8192 |
+-----------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3944        |
+|    iterations           | 2           |
+|    time_elapsed         | 4           |
+|    total_timesteps      | 16384       |
+| train/                  |             |
+|    approx_kl            | 0.012958629 |
+|    clip_fraction        | 0.19        |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.252      |
+|    explained_variance   | 0.0312      |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.528       |
+|    n_updates            | 10          |
+|    policy_gradient_loss | -0.00319    |
+|    std                  | 0.252       |
+|    value_loss           | 23.9        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3529        |
+|    iterations           | 3           |
+|    time_elapsed         | 6           |
+|    total_timesteps      | 24576       |
+| train/                  |             |
+|    approx_kl            | 0.013794167 |
+|    clip_fraction        | 0.187       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.258      |
+|    explained_variance   | 0.657       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.236       |
+|    n_updates            | 20          |
+|    policy_gradient_loss | -0.00597    |
+|    std                  | 0.253       |
+|    value_loss           | 2.15        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3350        |
+|    iterations           | 4           |
+|    time_elapsed         | 9           |
+|    total_timesteps      | 32768       |
+| train/                  |             |
+|    approx_kl            | 0.012202554 |
+|    clip_fraction        | 0.152       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.263      |
+|    explained_variance   | 0.73        |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.166       |
+|    n_updates            | 30          |
+|    policy_gradient_loss | -0.00157    |
+|    std                  | 0.253       |
+|    value_loss           | 3.59        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3251        |
+|    iterations           | 5           |
+|    time_elapsed         | 12          |
+|    total_timesteps      | 40960       |
+| train/                  |             |
+|    approx_kl            | 0.012390568 |
+|    clip_fraction        | 0.157       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.275      |
+|    explained_variance   | 0.688       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 1.15        |
+|    n_updates            | 40          |
+|    policy_gradient_loss | -0.00268    |
+|    std                  | 0.254       |
+|    value_loss           | 2.64        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3158        |
+|    iterations           | 6           |
+|    time_elapsed         | 15          |
+|    total_timesteps      | 49152       |
+| train/                  |             |
+|    approx_kl            | 0.015613862 |
+|    clip_fraction        | 0.202       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.271      |
+|    explained_variance   | 0.919       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.678       |
+|    n_updates            | 50          |
+|    policy_gradient_loss | -0.00796    |
+|    std                  | 0.253       |
+|    value_loss           | 2.28        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3091        |
+|    iterations           | 7           |
+|    time_elapsed         | 18          |
+|    total_timesteps      | 57344       |
+| train/                  |             |
+|    approx_kl            | 0.012413623 |
+|    clip_fraction        | 0.158       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.256      |
+|    explained_variance   | 0.952       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.632       |
+|    n_updates            | 60          |
+|    policy_gradient_loss | -0.00471    |
+|    std                  | 0.252       |
+|    value_loss           | 1.07        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 3043        |
+|    iterations           | 8           |
+|    time_elapsed         | 21          |
+|    total_timesteps      | 65536       |
+| train/                  |             |
+|    approx_kl            | 0.015203251 |
+|    clip_fraction        | 0.199       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.246      |
+|    explained_variance   | 0.917       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.557       |
+|    n_updates            | 70          |
+|    policy_gradient_loss | -0.00909    |
+|    std                  | 0.252       |
+|    value_loss           | 2.4         |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 2999        |
+|    iterations           | 9           |
+|    time_elapsed         | 24          |
+|    total_timesteps      | 73728       |
+| train/                  |             |
+|    approx_kl            | 0.012215759 |
+|    clip_fraction        | 0.162       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.222      |
+|    explained_variance   | 0.822       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.861       |
+|    n_updates            | 80          |
+|    policy_gradient_loss | -0.0061     |
+|    std                  | 0.251       |
+|    value_loss           | 1.49        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 2969        |
+|    iterations           | 10          |
+|    time_elapsed         | 27          |
+|    total_timesteps      | 81920       |
+| train/                  |             |
+|    approx_kl            | 0.014443545 |
+|    clip_fraction        | 0.195       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.201      |
+|    explained_variance   | 0.921       |
+|    learning_rate        | 0.0003      |
+|    loss                 | 1.41        |
+|    n_updates            | 90          |
+|    policy_gradient_loss | -0.00971    |
+|    std                  | 0.25        |
+|    value_loss           | 2.12        |
+-----------------------------------------
+-----------------------------------------
+| time/                   |             |
+|    fps                  | 2934        |
+|    iterations           | 11          |
+|    time_elapsed         | 30          |
+|    total_timesteps      | 90112       |
+| train/                  |             |
+|    approx_kl            | 0.017212708 |
+|    clip_fraction        | 0.238       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.171      |
+|    explained_variance   | 0.94        |
+|    learning_rate        | 0.0003      |
+|    loss                 | 0.684       |
+|    n_updates            | 100         |
+|    policy_gradient_loss | -0.00758    |
+|    std                  | 0.249       |
+|    value_loss           | 1.01        |
+-----------------------------------------
+----------------------------------------
+| time/                   |            |
+|    fps                  | 2900       |
+|    iterations           | 12         |
+|    time_elapsed         | 33         |
+|    total_timesteps      | 98304      |
+| train/                  |            |
+|    approx_kl            | 0.01591758 |
+|    clip_fraction        | 0.238      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.143     |
+|    explained_variance   | 0.94       |
+|    learning_rate        | 0.0003     |
+|    loss                 | 0.199      |
+|    n_updates            | 110        |
+|    policy_gradient_loss | -0.012     |
+|    std                  | 0.247      |
+|    value_loss           | 0.77       |
+----------------------------------------
+------------------------------------------
+| time/                   |              |
+|    fps                  | 2883         |
+|    iterations           | 13           |
+|    time_elapsed         | 36           |
+|    total_timesteps      | 106496       |
+| train/                  |              |
+|    approx_kl            | 0.0028042735 |
+|    clip_fraction        | 0.0166       |
+|    clip_range           | 0.2          |
+|    entropy_loss         | -0.131       |
+|    explained_variance   | 0.0166       |
+|    learning_rate        | 0.0003       |
+|    loss                 | 1.11e+05     |
+|    n_updates            | 120          |
+|    policy_gradient_loss | -0.00225     |
+|    std                  | 0.247        |
+|    value_loss           | 2.9e+05      |
+------------------------------------------
+/Users/jaiselsingh/Desktop/research/.venv/lib/python3.12/site-packages/glfw/__init__.py:917: GLFWError: (65537) b'The GLFW library is not initialized'
+  warnings.warn(message, GLFWError)
