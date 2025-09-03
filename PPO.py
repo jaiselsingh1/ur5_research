@@ -54,7 +54,7 @@ def main():
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.38, 
+            log_std_init=-1.60, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
@@ -84,13 +84,13 @@ def main():
 
     model.learn(total_timesteps=100_000, callback=callbacks) #callback=WandbCallback(verbose=2))
 
-    eval_env = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
+    eval_env_human = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
-    obs = eval_env.reset()
+    obs = eval_env_human.reset()
     for _ in range(1000):
         action, _ = model.predict(obs)
-        obs, rewards, dones, info = eval_env.step(action)
-        # eval_env.render()
+        obs, rewards, dones, info = eval_env_human.step(action)
+        # eval_env_human.render()
 
     wandb.finish()
 

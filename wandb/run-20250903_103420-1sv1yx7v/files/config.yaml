@@ -8,34 +8,42 @@ _last_episode_starts:
     value: '[ True  True  True  True]'
 _last_obs:
     value: |-
-        [[ 0.02772275  0.06790366  0.0161791  -0.05164159 -0.0990268  -0.01800895
-           0.          0.          0.          0.          0.          0.
-           0.798078    0.21325083 -0.06695678  0.502      -0.05       -0.1175
-          -0.29607797 -0.26325083 -0.05054322  0.39939678  0.0088289   0.02162537
-           0.00515258  0.01644637  0.0315372   0.00573533  0.          0.
-           0.        ]
-         [ 0.07703301  0.03170185  0.09228099 -0.05550697 -0.02535836  0.03595052
-           0.          0.          0.          0.          0.          0.
-           0.7883474   0.2528421  -0.0671052   0.502      -0.05       -0.1175
-          -0.28634745 -0.30284208 -0.0503948   0.41981882  0.0245328   0.01009613
-           0.02938885  0.01767738  0.00807591  0.01144921  0.          0.
-           0.        ]
-         [-0.08446448  0.07293171 -0.04610844 -0.03345895 -0.01269658 -0.09782548
-           0.          0.          0.          0.          0.          0.
-           0.82880574  0.12195671 -0.04698453  0.502      -0.05       -0.1175
-          -0.32680574 -0.1719567  -0.07051548  0.37595683  0.02689952  0.02322666
-           0.01468422  0.01065572  0.0040435   0.03115461  0.          0.
-           0.        ]
-         [-0.04274869  0.0632774   0.08512992  0.06450777 -0.06214562 -0.02014082
-           0.          0.          0.          0.          0.          0.
-           0.79454726  0.15747948 -0.08714792  0.502      -0.05       -0.1175
-          -0.29254726 -0.20747949 -0.03035208  0.35993457  0.01361423  0.02015204
-           0.02711144  0.02054388  0.0197916   0.00641427  0.          0.
-           0.        ]]
+        [[-5.76516725e-02  8.28080773e-02 -7.49374777e-02 -3.74397859e-02
+          -7.23716095e-02 -8.43368098e-02  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.22300255e-01  1.44093230e-01 -4.38659973e-02  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.20300251e-01 -1.94093227e-01
+          -7.36339986e-02  3.81688863e-01  1.83604043e-02  2.63719987e-02
+           2.38654390e-02  1.19234985e-02  2.30482835e-02  2.68588569e-02
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [-9.02116820e-02 -2.77639888e-02 -3.89700308e-02  2.68132091e-02
+           9.59006026e-02  9.58276168e-02  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.41712058e-01  1.15713052e-01  3.28540988e-02  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.39712024e-01 -1.65713057e-01
+          -1.50354102e-01  4.06781793e-01  2.87298355e-02  8.84203520e-03
+           1.24108372e-02  8.53923801e-03  3.05415932e-02  3.05183493e-02
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [-9.27963406e-02  3.45246606e-02 -1.50038702e-02  1.12601193e-02
+           9.64635164e-02 -2.34922464e-03  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.36100519e-01  1.14082463e-01 -2.80167256e-02  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.34100485e-01 -1.64082468e-01
+          -8.94832760e-02  3.82823020e-01  2.95529738e-02  1.09951152e-02
+           4.77830227e-03  3.58602521e-03  3.07208654e-02  7.48160703e-04
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [ 4.04675230e-02  8.07316154e-02 -5.21665961e-02 -7.28149489e-02
+          -1.84428245e-02  7.37773553e-02  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.09961557e-01  2.24387899e-01 -5.09422719e-02  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.07961524e-01 -2.74387896e-01
+          -6.65577278e-02  4.17802542e-01  1.28877470e-02  2.57107057e-02
+           1.66135654e-02  2.31894739e-02  5.87351108e-03  2.34959722e-02
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]]
 _last_original_obs:
     value: None
 _logger:
-    value: <stable_baselines3.common.logger.Logger object at 0x11fb15e20>
+    value: <stable_baselines3.common.logger.Logger object at 0x13a0ec7d0>
 _n_updates:
     value: 0
 _num_timesteps_at_start:
@@ -50,7 +58,7 @@ _wandb:
     value:
         cli_version: 0.21.3
         e:
-            t9cmsncuc5b2q25cne1yx10ya20oqavd:
+            8uxnlao6gu9vhai6w6bv398zaw7cyuzc:
                 apple:
                     ecpuCores: 4
                     gpuCores: 20
@@ -65,21 +73,21 @@ _wandb:
                 disk:
                     /:
                         total: "994662584320"
-                        used: "248381050880"
+                        used: "248209891328"
                 email: js6897@columbia.edu
                 executable: /Users/jaiselsingh/Desktop/research/.venv/bin/python
                 git:
-                    commit: 162ba687d870ae3aef352438677f23c7f681c588
+                    commit: 23beebb5c13ab4c89a9ffc08f1739c4fd0f9de6d
                     remote: git@github.com:jaiselsingh1/ur5_research.git
-                host: Mac.lan
+                host: MacBook-Pro-27.local
                 memory:
                     total: "25769803776"
                 os: macOS-15.6.1-arm64-arm-64bit
                 program: /Users/jaiselsingh/Desktop/research/PPO.py
                 python: CPython 3.12.5
                 root: /Users/jaiselsingh/Desktop/research
-                startedAt: "2025-09-03T03:59:59.963990Z"
-                writerId: t9cmsncuc5b2q25cne1yx10ya20oqavd
+                startedAt: "2025-09-03T14:34:20.601134Z"
+                writerId: 8uxnlao6gu9vhai6w6bv398zaw7cyuzc
         m: []
         python_version: 3.12.5
         t:
@@ -89,6 +97,7 @@ _wandb:
                 - 1
             "3":
                 - 1
+                - 2
                 - 16
                 - 22
                 - 35
@@ -115,7 +124,7 @@ device:
 ent_coef:
     value: 0
 env:
-    value: <stable_baselines3.common.vec_env.subproc_vec_env.SubprocVecEnv object at 0x119fae480>
+    value: <stable_baselines3.common.vec_env.subproc_vec_env.SubprocVecEnv object at 0x123a42e10>
 env_id:
     value: UR5-v0
 ep_info_buffer:
@@ -180,9 +189,9 @@ policy:
 policy_class:
     value: <class 'stable_baselines3.common.policies.ActorCriticPolicy'>
 policy_kwargs:
-    value: '{''log_std_init'': -1.38}'
+    value: '{''log_std_init'': -1.6}'
 rollout_buffer:
-    value: <stable_baselines3.common.buffers.RolloutBuffer object at 0x11c8f7470>
+    value: <stable_baselines3.common.buffers.RolloutBuffer object at 0x123af3f80>
 rollout_buffer_class:
     value: <class 'stable_baselines3.common.buffers.RolloutBuffer'>
 rollout_buffer_kwargs:
@@ -192,7 +201,7 @@ sde_sample_freq:
 seed:
     value: None
 start_time:
-    value: 1756872002518507000
+    value: 1756910063410376000
 target_kl:
     value: None
 tensorboard_log:

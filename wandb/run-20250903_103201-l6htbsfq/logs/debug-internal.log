@@ -1,0 +1,15 @@
+{"time":"2025-09-03T10:32:01.264008-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-03T10:32:01.583929-04:00","level":"INFO","msg":"stream: created new stream","id":"l6htbsfq"}
+{"time":"2025-09-03T10:32:01.584159-04:00","level":"INFO","msg":"handler: started","stream_id":"l6htbsfq"}
+{"time":"2025-09-03T10:32:01.584191-04:00","level":"INFO","msg":"stream: started","id":"l6htbsfq"}
+{"time":"2025-09-03T10:32:01.584216-04:00","level":"INFO","msg":"sender: started","stream_id":"l6htbsfq"}
+{"time":"2025-09-03T10:32:01.58425-04:00","level":"INFO","msg":"writer: started","stream_id":"l6htbsfq"}
+{"time":"2025-09-03T10:32:13.613857-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-03T10:32:13.614232-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_2\")","namespace":""}
+{"time":"2025-09-03T10:32:13.615715-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_2/events.out.tfevents.1756909923.MacBook-Pro-27.local.65218.0","runPath":"tensorboard_log/PPO_2/events.out.tfevents.1756909923.MacBook-Pro-27.local.65218.0"}
+{"time":"2025-09-03T10:33:34.492456-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000619625}],"total_operations":1}}
+{"time":"2025-09-03T10:33:34.865593-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-03T10:33:35.102523-04:00","level":"INFO","msg":"stream: closing","id":"l6htbsfq"}
+{"time":"2025-09-03T10:33:35.103133-04:00","level":"INFO","msg":"handler: closed","stream_id":"l6htbsfq"}
+{"time":"2025-09-03T10:33:35.103158-04:00","level":"INFO","msg":"sender: closed","stream_id":"l6htbsfq"}
+{"time":"2025-09-03T10:33:35.103254-04:00","level":"INFO","msg":"stream: closed","id":"l6htbsfq"}

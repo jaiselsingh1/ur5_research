@@ -1,0 +1,15 @@
+{"time":"2025-09-03T10:34:20.86612-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-03T10:34:21.387663-04:00","level":"INFO","msg":"stream: created new stream","id":"1sv1yx7v"}
+{"time":"2025-09-03T10:34:21.387708-04:00","level":"INFO","msg":"stream: started","id":"1sv1yx7v"}
+{"time":"2025-09-03T10:34:21.387711-04:00","level":"INFO","msg":"writer: started","stream_id":"1sv1yx7v"}
+{"time":"2025-09-03T10:34:21.387712-04:00","level":"INFO","msg":"handler: started","stream_id":"1sv1yx7v"}
+{"time":"2025-09-03T10:34:21.387722-04:00","level":"INFO","msg":"sender: started","stream_id":"1sv1yx7v"}
+{"time":"2025-09-03T10:34:33.412482-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-03T10:34:33.41274-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_3\")","namespace":""}
+{"time":"2025-09-03T10:34:33.412981-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_3/events.out.tfevents.1756910063.MacBook-Pro-27.local.65394.0","runPath":"tensorboard_log/PPO_3/events.out.tfevents.1756910063.MacBook-Pro-27.local.65394.0"}
+{"time":"2025-09-03T10:35:49.475781-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000820375}],"total_operations":1}}
+{"time":"2025-09-03T10:35:49.95134-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-03T10:35:50.316272-04:00","level":"INFO","msg":"stream: closing","id":"1sv1yx7v"}
+{"time":"2025-09-03T10:35:50.316325-04:00","level":"INFO","msg":"handler: closed","stream_id":"1sv1yx7v"}
+{"time":"2025-09-03T10:35:50.316491-04:00","level":"INFO","msg":"sender: closed","stream_id":"1sv1yx7v"}
+{"time":"2025-09-03T10:35:50.316507-04:00","level":"INFO","msg":"stream: closed","id":"1sv1yx7v"}

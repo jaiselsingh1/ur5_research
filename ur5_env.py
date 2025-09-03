@@ -18,7 +18,7 @@ DEFAULT_CAMERA_CONFIG = {
 gym.register(
     id ="UR5-v0",
     entry_point ="ur5_env:ur5",
-    max_episode_steps=1000,
+    max_episode_steps=5000,
 )
 
 # custom MuJoCo environment in Gymnasium

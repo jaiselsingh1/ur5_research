@@ -1,24 +1,24 @@
 {
   "os":  "macOS-15.6.1-arm64-arm-64bit",
   "python":  "CPython 3.12.5",
-  "startedAt":  "2025-09-03T03:59:59.963990Z",
+  "startedAt":  "2025-09-03T14:32:01.012842Z",
   "program":  "/Users/jaiselsingh/Desktop/research/PPO.py",
   "codePath":  "PPO.py",
   "codePathLocal":  "PPO.py",
   "git":  {
     "remote":  "git@github.com:jaiselsingh1/ur5_research.git",
-    "commit":  "162ba687d870ae3aef352438677f23c7f681c588"
+    "commit":  "23beebb5c13ab4c89a9ffc08f1739c4fd0f9de6d"
   },
   "email":  "js6897@columbia.edu",
   "root":  "/Users/jaiselsingh/Desktop/research",
-  "host":  "Mac.lan",
+  "host":  "MacBook-Pro-27.local",
   "executable":  "/Users/jaiselsingh/Desktop/research/.venv/bin/python",
   "cpu_count":  14,
   "cpu_count_logical":  14,
   "disk":  {
     "/":  {
       "total":  "994662584320",
-      "used":  "248381050880"
+      "used":  "248206602240"
     }
   },
   "memory":  {
@@ -32,5 +32,5 @@
     "memoryGb":  24,
     "ramTotalBytes":  "25769803776"
   },
-  "writerId":  "t9cmsncuc5b2q25cne1yx10ya20oqavd"
+  "writerId":  "dmbli20f42l3t337gcszzo97g8smk1v8"
 }
