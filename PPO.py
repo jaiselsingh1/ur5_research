@@ -37,7 +37,7 @@ def main():
             "n_steps": 2048,
             "total_timesteps": 100_000,
             "num_cpu": 4,
-            "log_std_init": -0.25, 
+            "log_std_init": -1.38, 
         }
     )
 
@@ -49,17 +49,17 @@ def main():
     model = PPO(
         "MlpPolicy", 
         vec_env, 
-        n_steps=2048, 
+        n_steps=2048, # how many timesteps do you need to do the right behavior 
         verbose=1,
         policy_kwargs=dict(
-            log_std_init=-0.25, 
+            log_std_init=-1.38, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
     # action is the mean 
     # std is used to play with that more / how spread out the sampling 
     # done in log space 
-    model.learn(total_timesteps=100_000, callback=WandbCallback())
+    model.learn(total_timesteps=100_000, callback=WandbCallback(verbose=2))
 
     eval_env = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
