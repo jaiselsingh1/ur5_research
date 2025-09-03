@@ -30,13 +30,14 @@ def make_env(env_id: str, rank: int, seed: int = 0):
 
 def main():
     wandb.init(
-        project="ur5-ppo-training",  
+        project="ur5-ppo-training",
         config={
             "env_id": "UR5-v0",
             "algorithm": "PPO",
             "n_steps": 2048,
             "total_timesteps": 100_000,
-            "num_cpu": 4
+            "num_cpu": 4,
+            "log_std_init": -0.25, 
         }
     )
 
@@ -45,7 +46,19 @@ def main():
 
     vec_env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
-    model = PPO("MlpPolicy", vec_env, n_steps=2048, verbose=1)
+    model = PPO(
+        "MlpPolicy", 
+        vec_env, 
+        n_steps=2048, 
+        verbose=1,
+        policy_kwargs=dict(
+            log_std_init=-0.25, 
+        )
+    )
+    # stochastic policy hence you need to have a std parameter 
+    # action is the mean 
+    # std is used to play with that more / how spread out the sampling 
+    # done in log space 
     model.learn(total_timesteps=100_000, callback=WandbCallback())
 
     eval_env = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
