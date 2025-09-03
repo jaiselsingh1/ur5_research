@@ -4,7 +4,7 @@ import gymnasium as gym
 import ur5_env  # this runs gym.register for UR5-v0
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, CallbackList
 from stable_baselines3.common.utils import set_random_seed 
 from stable_baselines3.common.monitor import Monitor
 
@@ -61,7 +61,28 @@ def main():
     # action is the mean 
     # std is used to play with that more / how spread out the sampling 
     # done in log space 
-    model.learn(total_timesteps=100_000, callback=WandbCallback(verbose=2))
+
+    eval_env = DummyVecEnv([lambda: Monitor(gym.make(env_id))])
+
+    eval_callback = EvalCallback(
+        eval_env,
+        best_model_save_path="./logs/",
+        log_path="./logs/",
+        eval_freq=10_000,
+        deterministic=True,
+        render=False
+    )
+
+    callbacks = CallbackList([
+        eval_callback,
+        WandbCallback(
+            gradient_save_freq=100,  # optional: log gradients
+            log="all",               # log metrics, gradients, model checkpoints
+            verbose=2
+        )
+    ])
+
+    model.learn(total_timesteps=100_000, callback=callbacks) #callback=WandbCallback(verbose=2))
 
     eval_env = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
