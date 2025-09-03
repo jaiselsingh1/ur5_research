@@ -62,8 +62,10 @@ class ur5(MujocoEnv):
 
         num_actuators = 6 
 
+        # self.act_mid = np.zeros(num_actuators)
+        # self.act_rng = np.ones(num_actuators) * 0.5 # reduced to scale down action scaling 
         self.act_mid = np.zeros(num_actuators)
-        self.act_rng = np.ones(num_actuators) * 0.5 # reduced to scale down action scaling 
+        self.act_rng = np.array([3.15, 3.15, 3.15, 3.2, 3.2, 3.2])  # XML ctrlrange
 
         # this makes more sense when you scale it here vs the neural network because then you don't have to write that scalar multiplier for each output
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
@@ -72,6 +74,7 @@ class ur5(MujocoEnv):
         action = np.clip(action, -1.0, 1.0)
 
         # de-normalize the input action to the needed control range
+        # this is basically taking the range from [-1,1] and then scaling it for the joints to be able to move around and meet a reward
         action = self.act_mid + action * self.act_rng
 
         # enforce vel limits
