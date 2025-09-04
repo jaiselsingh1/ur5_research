@@ -34,7 +34,7 @@ def main():
         config={
             "env_id": "UR5-v0",
             "algorithm": "PPO",
-            "n_steps": 500,
+            "n_steps": 2048,
             "total_timesteps": 100_000,
             "num_cpu": 4,
             "log_std_init": -1.50, 
@@ -51,10 +51,10 @@ def main():
         "MlpPolicy", 
         vec_env, 
         ent_coef=0.01, 
-        learning_rate=2e-4,
+        learning_rate=1e-4,
         batch_size=64, 
-        n_epochs=20,
-        n_steps=500, # how many timesteps do you need to do within the environment for "right behavior" to do policy update
+        n_epochs=10, # do not want to overfit the very small set of data that I am using 
+        n_steps=2048, # how many timesteps do you need to do within the environment for "right behavior" to do policy update
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
