@@ -34,10 +34,10 @@ def main():
         config={
             "env_id": "UR5-v0",
             "algorithm": "PPO",
-            "n_steps": 2048,
+            "n_steps": 500,
             "total_timesteps": 100_000,
             "num_cpu": 4,
-            "log_std_init": -1.38, 
+            "log_std_init": -1.50, 
         }, 
         sync_tensorboard=True
     )
@@ -50,13 +50,15 @@ def main():
     model = PPO(
         "MlpPolicy", 
         vec_env, 
+        ent_coef=0.01, 
         learning_rate=2e-4,
+        batch_size=64, 
         n_epochs=20,
-        n_steps=2048, # how many timesteps do you need to do the right behavior 
+        n_steps=500, # how many timesteps do you need to do within the environment for "right behavior" to do policy update
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.60, 
+            log_std_init=-1.50, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
@@ -78,7 +80,7 @@ def main():
     callbacks = CallbackList([
         eval_callback,
         WandbCallback(
-            gradient_save_freq=100,  # optional: log gradients
+            gradient_save_freq=100,  
             log="all",               # log metrics, gradients, model checkpoints
             verbose=2
         )

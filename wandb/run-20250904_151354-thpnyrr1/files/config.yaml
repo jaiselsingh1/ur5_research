@@ -1,0 +1,216 @@
+_current_progress_remaining:
+    value: 1
+_custom_logger:
+    value: "False"
+_episode_num:
+    value: 0
+_last_episode_starts:
+    value: '[ True  True  True  True]'
+_last_obs:
+    value: |-
+        [[-3.50859351e-02 -1.38420323e-02  2.87935808e-02 -8.24095607e-02
+          -4.73545939e-02  4.32221331e-02  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.25866640e-01  1.62487388e-01 -5.52018126e-03  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.23866665e-01 -2.12487385e-01
+          -1.11979820e-01  4.03212070e-01  1.11738648e-02  4.40829061e-03
+           9.16992966e-03  2.62450837e-02  1.50810815e-02  1.37650110e-02
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [ 4.05089110e-02  2.93917693e-02 -3.65073085e-02 -8.92918266e-04
+          -1.48423119e-02  1.93645174e-04  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           8.08170199e-01  2.24354133e-01 -1.51964026e-02  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -3.06170195e-01 -2.74354130e-01
+          -1.02303594e-01  4.23646569e-01  1.29009271e-02  9.36043542e-03
+           1.16265323e-02  2.84368871e-04  4.72685089e-03  6.16704347e-05
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [ 6.80406019e-02  2.42695697e-02 -8.24913532e-02  1.56544037e-02
+          -9.92661044e-02  4.21168022e-02  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           7.97470748e-01  2.45832205e-01  6.75869687e-03  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -2.95470774e-01 -2.95832217e-01
+          -1.24258697e-01  4.36187923e-01  2.16689799e-02  7.72916200e-03
+           2.62711309e-02  4.98547917e-03  3.16134095e-02  1.34129943e-02
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]
+         [ 7.79442862e-03  9.70330611e-02  6.05510734e-02  6.52733296e-02
+          -1.59923488e-03  7.17861578e-03  0.00000000e+00  0.00000000e+00
+           0.00000000e+00  0.00000000e+00  0.00000000e+00  0.00000000e+00
+           7.87826657e-01  1.97596490e-01 -1.05852440e-01  5.01999974e-01
+          -5.00000007e-02 -1.17500000e-01 -2.85826683e-01 -2.47596487e-01
+          -1.16475597e-02  3.78333956e-01  2.48230202e-03  3.09022497e-02
+           1.92837808e-02  2.07876861e-02  5.09310456e-04  2.28618341e-03
+           0.00000000e+00  0.00000000e+00  0.00000000e+00]]
+_last_original_obs:
+    value: None
+_logger:
+    value: <stable_baselines3.common.logger.Logger object at 0x13abafd10>
+_n_updates:
+    value: 0
+_num_timesteps_at_start:
+    value: 0
+_stats_window_size:
+    value: 100
+_total_timesteps:
+    value: 100000
+_vec_normalize_env:
+    value: None
+_wandb:
+    value:
+        cli_version: 0.21.3
+        e:
+            gvgekjnot9wi5scquzssy9tprz8m6oby:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 20
+                    memoryGb: 24
+                    name: Apple M4 Pro
+                    pcpuCores: 10
+                    ramTotalBytes: "25769803776"
+                codePath: PPO.py
+                codePathLocal: PPO.py
+                cpu_count: 14
+                cpu_count_logical: 14
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "245197058048"
+                email: js6897@columbia.edu
+                executable: /Users/jaiselsingh/Desktop/research/.venv/bin/python
+                git:
+                    commit: 19e7929310b77250ea691937d8956b8dcdf82e0d
+                    remote: git@github.com:jaiselsingh1/ur5_research.git
+                host: MacBook-Pro-27.local
+                memory:
+                    total: "25769803776"
+                os: macOS-15.6.1-arm64-arm-64bit
+                program: /Users/jaiselsingh/Desktop/research/PPO.py
+                python: CPython 3.12.5
+                root: /Users/jaiselsingh/Desktop/research
+                startedAt: "2025-09-04T19:13:54.208620Z"
+                writerId: gvgekjnot9wi5scquzssy9tprz8m6oby
+        m: []
+        python_version: 3.12.5
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 1
+                - 2
+                - 16
+                - 22
+                - 35
+            "4": 3.12.5
+            "5": 0.21.3
+            "12": 0.21.3
+            "13": darwin-arm64
+action_noise:
+    value: None
+action_space:
+    value: Box(-1.0, 1.0, (6,), float64)
+algo:
+    value: PPO
+algorithm:
+    value: PPO
+batch_size:
+    value: 64
+clip_range:
+    value: FloatSchedule(ConstantSchedule(val=0.2))
+clip_range_vf:
+    value: None
+device:
+    value: cpu
+ent_coef:
+    value: 0
+env:
+    value: <stable_baselines3.common.vec_env.subproc_vec_env.SubprocVecEnv object at 0x119adc1a0>
+env_id:
+    value: UR5-v0
+ep_info_buffer:
+    value: deque([], maxlen=100)
+ep_success_buffer:
+    value: deque([], maxlen=100)
+gae_lambda:
+    value: 0.95
+gamma:
+    value: 0.99
+learning_rate:
+    value: 0.0002
+log_std_init:
+    value: -1.5
+lr_schedule:
+    value: FloatSchedule(ConstantSchedule(val=0.0002))
+max_grad_norm:
+    value: 0.5
+n_envs:
+    value: 4
+n_epochs:
+    value: 20
+n_steps:
+    value: 500
+normalize_advantage:
+    value: "True"
+num_cpu:
+    value: 4
+num_timesteps:
+    value: 0
+observation_space:
+    value: Box(-inf, inf, (31,), float32)
+policy:
+    value: |-
+        ActorCriticPolicy(
+          (features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (pi_features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (vf_features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (mlp_extractor): MlpExtractor(
+            (policy_net): Sequential(
+              (0): Linear(in_features=31, out_features=64, bias=True)
+              (1): Tanh()
+              (2): Linear(in_features=64, out_features=64, bias=True)
+              (3): Tanh()
+            )
+            (value_net): Sequential(
+              (0): Linear(in_features=31, out_features=64, bias=True)
+              (1): Tanh()
+              (2): Linear(in_features=64, out_features=64, bias=True)
+              (3): Tanh()
+            )
+          )
+          (action_net): Linear(in_features=64, out_features=6, bias=True)
+          (value_net): Linear(in_features=64, out_features=1, bias=True)
+        )
+policy_class:
+    value: <class 'stable_baselines3.common.policies.ActorCriticPolicy'>
+policy_kwargs:
+    value: '{''log_std_init'': -1.5}'
+rollout_buffer:
+    value: <stable_baselines3.common.buffers.RolloutBuffer object at 0x1199b78f0>
+rollout_buffer_class:
+    value: <class 'stable_baselines3.common.buffers.RolloutBuffer'>
+rollout_buffer_kwargs:
+    value: '{}'
+sde_sample_freq:
+    value: -1
+seed:
+    value: None
+start_time:
+    value: 1757013236674295000
+target_kl:
+    value: None
+tensorboard_log:
+    value: tensorboard_log
+total_timesteps:
+    value: 100000
+use_sde:
+    value: "False"
+verbose:
+    value: 1
+vf_coef:
+    value: 0.5

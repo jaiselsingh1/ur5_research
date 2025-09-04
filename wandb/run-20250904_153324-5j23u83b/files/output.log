@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/jaiselsingh/Desktop/research/PPO.py", line 103, in <module>
+    main()
+  File "/Users/jaiselsingh/Desktop/research/PPO.py", line 50, in main
+    model = PPO(
+            ^^^^
+TypeError: PPO.__init__() got an unexpected keyword argument 'ent_coeff'

@@ -1,0 +1,15 @@
+{"time":"2025-09-04T15:33:48.275679-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-04T15:33:48.457842-04:00","level":"INFO","msg":"stream: created new stream","id":"6f2d33ub"}
+{"time":"2025-09-04T15:33:48.45787-04:00","level":"INFO","msg":"stream: started","id":"6f2d33ub"}
+{"time":"2025-09-04T15:33:48.457879-04:00","level":"INFO","msg":"writer: started","stream_id":"6f2d33ub"}
+{"time":"2025-09-04T15:33:48.45789-04:00","level":"INFO","msg":"handler: started","stream_id":"6f2d33ub"}
+{"time":"2025-09-04T15:33:48.457912-04:00","level":"INFO","msg":"sender: started","stream_id":"6f2d33ub"}
+{"time":"2025-09-04T15:34:00.507751-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-04T15:34:00.507821-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_24\")","namespace":""}
+{"time":"2025-09-04T15:34:00.509861-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_24/events.out.tfevents.1757014430.MacBook-Pro-27.local.7969.0","runPath":"tensorboard_log/PPO_24/events.out.tfevents.1757014430.MacBook-Pro-27.local.7969.0"}
+{"time":"2025-09-04T15:34:57.930396-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000710125}],"total_operations":1}}
+{"time":"2025-09-04T15:34:58.375911-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-04T15:34:58.532055-04:00","level":"INFO","msg":"stream: closing","id":"6f2d33ub"}
+{"time":"2025-09-04T15:34:58.532108-04:00","level":"INFO","msg":"handler: closed","stream_id":"6f2d33ub"}
+{"time":"2025-09-04T15:34:58.53229-04:00","level":"INFO","msg":"sender: closed","stream_id":"6f2d33ub"}
+{"time":"2025-09-04T15:34:58.532317-04:00","level":"INFO","msg":"stream: closed","id":"6f2d33ub"}

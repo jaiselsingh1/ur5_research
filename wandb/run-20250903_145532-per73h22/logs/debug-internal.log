@@ -1,0 +1,16 @@
+{"time":"2025-09-03T14:55:32.454904-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-03T14:55:32.751308-04:00","level":"INFO","msg":"stream: created new stream","id":"per73h22"}
+{"time":"2025-09-03T14:55:32.751356-04:00","level":"INFO","msg":"stream: started","id":"per73h22"}
+{"time":"2025-09-03T14:55:32.751378-04:00","level":"INFO","msg":"sender: started","stream_id":"per73h22"}
+{"time":"2025-09-03T14:55:32.751392-04:00","level":"INFO","msg":"writer: started","stream_id":"per73h22"}
+{"time":"2025-09-03T14:55:32.751397-04:00","level":"INFO","msg":"handler: started","stream_id":"per73h22"}
+{"time":"2025-09-03T14:55:44.881237-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-03T14:55:44.882035-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_16\")","namespace":""}
+{"time":"2025-09-03T14:55:44.883442-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_16/events.out.tfevents.1756925734.MacBook-Pro-27.local.2473.0","runPath":"tensorboard_log/PPO_16/events.out.tfevents.1756925734.MacBook-Pro-27.local.2473.0"}
+{"time":"2025-09-03T14:56:34.427086-04:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/js6897-columbia-university/ur5-ppo-training/per73h22/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2025-09-03T14:57:21.554873-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000366125}],"total_operations":1}}
+{"time":"2025-09-03T14:57:21.989958-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-03T14:57:22.398548-04:00","level":"INFO","msg":"stream: closing","id":"per73h22"}
+{"time":"2025-09-03T14:57:22.398805-04:00","level":"INFO","msg":"sender: closed","stream_id":"per73h22"}
+{"time":"2025-09-03T14:57:22.398889-04:00","level":"INFO","msg":"handler: closed","stream_id":"per73h22"}
+{"time":"2025-09-03T14:57:22.398929-04:00","level":"INFO","msg":"stream: closed","id":"per73h22"}

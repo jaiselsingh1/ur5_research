@@ -1,0 +1,208 @@
+_current_progress_remaining:
+    value: 1
+_custom_logger:
+    value: "False"
+_episode_num:
+    value: 0
+_last_episode_starts:
+    value: '[ True  True  True  True]'
+_last_obs:
+    value: |-
+        [[ 0.05367805 -0.08049966  0.04501254 -0.02169314  0.02500141  0.01584445
+           0.          0.          0.          0.          0.          0.
+           0.81163406  0.23530923  0.04287359  0.502      -0.05       -0.1175
+          -0.3096341  -0.28530923 -0.16037358  0.4505489   0.01709492  0.02563684
+           0.0143352   0.00690864  0.00796223  0.005046    0.          0.
+           0.        ]
+         [-0.050132   -0.03468175  0.01821846 -0.0498451   0.08484155 -0.03554629
+           0.          0.          0.          0.          0.          0.
+           0.83870745  0.14931309  0.01637333  0.502      -0.05       -0.1175
+          -0.33670744 -0.1993131  -0.13387333  0.41354528  0.0159656   0.01104514
+           0.00580206  0.01587424  0.0270196   0.01132048  0.          0.
+           0.        ]
+         [ 0.03360089  0.0284701  -0.03628312 -0.09536949 -0.02862979  0.02936843
+           0.          0.          0.          0.          0.          0.
+           0.8175754   0.21900599 -0.01426378  0.502      -0.05       -0.1175
+          -0.3155754  -0.26900598 -0.10323622  0.42732865  0.01070092  0.00906691
+           0.01155513  0.03037245  0.00911777  0.009353    0.          0.
+           0.        ]
+         [ 0.04496377  0.00579523 -0.04836665 -0.05003146  0.07767783  0.08096085
+           0.          0.          0.          0.          0.          0.
+           0.82256377  0.22840579  0.00973574  0.502      -0.05       -0.1175
+          -0.32056376 -0.2784058  -0.12723574  0.4432379   0.01431967  0.00184561
+           0.01540339  0.01593358  0.02473816  0.02578371  0.          0.
+           0.        ]]
+_last_original_obs:
+    value: None
+_logger:
+    value: <stable_baselines3.common.logger.Logger object at 0x13730b500>
+_n_updates:
+    value: 0
+_num_timesteps_at_start:
+    value: 0
+_stats_window_size:
+    value: 100
+_total_timesteps:
+    value: 100000
+_vec_normalize_env:
+    value: None
+_wandb:
+    value:
+        cli_version: 0.21.3
+        e:
+            s2cqw1i8ud0ulfyq1lk9wumucab97cln:
+                apple:
+                    ecpuCores: 4
+                    gpuCores: 20
+                    memoryGb: 24
+                    name: Apple M4 Pro
+                    pcpuCores: 10
+                    ramTotalBytes: "25769803776"
+                codePath: PPO.py
+                codePathLocal: PPO.py
+                cpu_count: 14
+                cpu_count_logical: 14
+                disk:
+                    /:
+                        total: "994662584320"
+                        used: "244352319488"
+                email: js6897@columbia.edu
+                executable: /Users/jaiselsingh/Desktop/research/.venv/bin/python
+                git:
+                    commit: 19e7929310b77250ea691937d8956b8dcdf82e0d
+                    remote: git@github.com:jaiselsingh1/ur5_research.git
+                host: MacBook-Pro-27.local
+                memory:
+                    total: "25769803776"
+                os: macOS-15.6.1-arm64-arm-64bit
+                program: /Users/jaiselsingh/Desktop/research/PPO.py
+                python: CPython 3.12.5
+                root: /Users/jaiselsingh/Desktop/research
+                startedAt: "2025-09-03T19:17:51.123584Z"
+                writerId: s2cqw1i8ud0ulfyq1lk9wumucab97cln
+        m: []
+        python_version: 3.12.5
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 1
+                - 2
+                - 16
+                - 22
+                - 35
+            "4": 3.12.5
+            "5": 0.21.3
+            "12": 0.21.3
+            "13": darwin-arm64
+action_noise:
+    value: None
+action_space:
+    value: Box(-1.0, 1.0, (6,), float64)
+algo:
+    value: PPO
+algorithm:
+    value: PPO
+batch_size:
+    value: 32
+clip_range:
+    value: FloatSchedule(ConstantSchedule(val=0.2))
+clip_range_vf:
+    value: None
+device:
+    value: cpu
+ent_coef:
+    value: 0
+env:
+    value: <stable_baselines3.common.vec_env.subproc_vec_env.SubprocVecEnv object at 0x134585d60>
+env_id:
+    value: UR5-v0
+ep_info_buffer:
+    value: deque([], maxlen=100)
+ep_success_buffer:
+    value: deque([], maxlen=100)
+gae_lambda:
+    value: 0.95
+gamma:
+    value: 0.99
+learning_rate:
+    value: 0.0002
+log_std_init:
+    value: -1.38
+lr_schedule:
+    value: FloatSchedule(ConstantSchedule(val=0.0002))
+max_grad_norm:
+    value: 0.5
+n_envs:
+    value: 4
+n_epochs:
+    value: 20
+n_steps:
+    value: 2048
+normalize_advantage:
+    value: "True"
+num_cpu:
+    value: 4
+num_timesteps:
+    value: 0
+observation_space:
+    value: Box(-inf, inf, (31,), float32)
+policy:
+    value: |-
+        ActorCriticPolicy(
+          (features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (pi_features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (vf_features_extractor): FlattenExtractor(
+            (flatten): Flatten(start_dim=1, end_dim=-1)
+          )
+          (mlp_extractor): MlpExtractor(
+            (policy_net): Sequential(
+              (0): Linear(in_features=31, out_features=64, bias=True)
+              (1): Tanh()
+              (2): Linear(in_features=64, out_features=64, bias=True)
+              (3): Tanh()
+            )
+            (value_net): Sequential(
+              (0): Linear(in_features=31, out_features=64, bias=True)
+              (1): Tanh()
+              (2): Linear(in_features=64, out_features=64, bias=True)
+              (3): Tanh()
+            )
+          )
+          (action_net): Linear(in_features=64, out_features=6, bias=True)
+          (value_net): Linear(in_features=64, out_features=1, bias=True)
+        )
+policy_class:
+    value: <class 'stable_baselines3.common.policies.ActorCriticPolicy'>
+policy_kwargs:
+    value: '{''log_std_init'': -1.6}'
+rollout_buffer:
+    value: <stable_baselines3.common.buffers.RolloutBuffer object at 0x107e0ab70>
+rollout_buffer_class:
+    value: <class 'stable_baselines3.common.buffers.RolloutBuffer'>
+rollout_buffer_kwargs:
+    value: '{}'
+sde_sample_freq:
+    value: -1
+seed:
+    value: None
+start_time:
+    value: 1756927073784936000
+target_kl:
+    value: None
+tensorboard_log:
+    value: tensorboard_log
+total_timesteps:
+    value: 100000
+use_sde:
+    value: "False"
+verbose:
+    value: 1
+vf_coef:
+    value: 0.5

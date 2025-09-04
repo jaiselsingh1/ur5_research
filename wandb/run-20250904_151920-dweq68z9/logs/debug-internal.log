@@ -1,0 +1,15 @@
+{"time":"2025-09-04T15:19:21.133813-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-04T15:19:21.314349-04:00","level":"INFO","msg":"stream: created new stream","id":"dweq68z9"}
+{"time":"2025-09-04T15:19:21.314382-04:00","level":"INFO","msg":"stream: started","id":"dweq68z9"}
+{"time":"2025-09-04T15:19:21.314391-04:00","level":"INFO","msg":"handler: started","stream_id":"dweq68z9"}
+{"time":"2025-09-04T15:19:21.314404-04:00","level":"INFO","msg":"sender: started","stream_id":"dweq68z9"}
+{"time":"2025-09-04T15:19:21.314388-04:00","level":"INFO","msg":"writer: started","stream_id":"dweq68z9"}
+{"time":"2025-09-04T15:19:33.32984-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-04T15:19:33.330658-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_23\")","namespace":""}
+{"time":"2025-09-04T15:19:33.330916-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_23/events.out.tfevents.1757013563.MacBook-Pro-27.local.7511.0","runPath":"tensorboard_log/PPO_23/events.out.tfevents.1757013563.MacBook-Pro-27.local.7511.0"}
+{"time":"2025-09-04T15:22:54.944245-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000501}],"total_operations":1}}
+{"time":"2025-09-04T15:22:55.396107-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-04T15:22:55.519293-04:00","level":"INFO","msg":"stream: closing","id":"dweq68z9"}
+{"time":"2025-09-04T15:22:55.51935-04:00","level":"INFO","msg":"handler: closed","stream_id":"dweq68z9"}
+{"time":"2025-09-04T15:22:55.519436-04:00","level":"INFO","msg":"sender: closed","stream_id":"dweq68z9"}
+{"time":"2025-09-04T15:22:55.519458-04:00","level":"INFO","msg":"stream: closed","id":"dweq68z9"}

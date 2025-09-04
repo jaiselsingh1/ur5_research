@@ -1,0 +1,15 @@
+{"time":"2025-09-04T15:16:00.989932-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-04T15:16:01.170921-04:00","level":"INFO","msg":"stream: created new stream","id":"acrcvsru"}
+{"time":"2025-09-04T15:16:01.170951-04:00","level":"INFO","msg":"stream: started","id":"acrcvsru"}
+{"time":"2025-09-04T15:16:01.170963-04:00","level":"INFO","msg":"writer: started","stream_id":"acrcvsru"}
+{"time":"2025-09-04T15:16:01.170961-04:00","level":"INFO","msg":"handler: started","stream_id":"acrcvsru"}
+{"time":"2025-09-04T15:16:01.170983-04:00","level":"INFO","msg":"sender: started","stream_id":"acrcvsru"}
+{"time":"2025-09-04T15:16:13.209644-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-04T15:16:13.210423-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_22\")","namespace":""}
+{"time":"2025-09-04T15:16:13.210634-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_22/events.out.tfevents.1757013363.MacBook-Pro-27.local.7273.0","runPath":"tensorboard_log/PPO_22/events.out.tfevents.1757013363.MacBook-Pro-27.local.7273.0"}
+{"time":"2025-09-04T15:17:46.99964-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000426709}],"total_operations":1}}
+{"time":"2025-09-04T15:17:47.373252-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-04T15:17:47.49539-04:00","level":"INFO","msg":"stream: closing","id":"acrcvsru"}
+{"time":"2025-09-04T15:17:47.495441-04:00","level":"INFO","msg":"handler: closed","stream_id":"acrcvsru"}
+{"time":"2025-09-04T15:17:47.495699-04:00","level":"INFO","msg":"sender: closed","stream_id":"acrcvsru"}
+{"time":"2025-09-04T15:17:47.495765-04:00","level":"INFO","msg":"stream: closed","id":"acrcvsru"}
