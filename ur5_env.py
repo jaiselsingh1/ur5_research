@@ -18,7 +18,7 @@ DEFAULT_CAMERA_CONFIG = {
 gym.register(
     id ="UR5-v0",
     entry_point ="ur5_env:ur5",
-    max_episode_steps=5000,
+    max_episode_steps=1000,
 )
 
 # custom MuJoCo environment in Gymnasium
@@ -165,6 +165,9 @@ class ur5(MujocoEnv):
 
             pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
             reward = -1.0 * pos_error
+            
+            if pos_error < 0.05:
+                reward += 1000
 
         
             # if self.data.time % 1.0 < 0.04:  
