@@ -1,0 +1,15 @@
+{"time":"2025-09-04T15:36:22.73782-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-04T15:36:22.927407-04:00","level":"INFO","msg":"stream: created new stream","id":"nmrijwyz"}
+{"time":"2025-09-04T15:36:22.927541-04:00","level":"INFO","msg":"handler: started","stream_id":"nmrijwyz"}
+{"time":"2025-09-04T15:36:22.927573-04:00","level":"INFO","msg":"stream: started","id":"nmrijwyz"}
+{"time":"2025-09-04T15:36:22.927689-04:00","level":"INFO","msg":"writer: started","stream_id":"nmrijwyz"}
+{"time":"2025-09-04T15:36:22.927698-04:00","level":"INFO","msg":"sender: started","stream_id":"nmrijwyz"}
+{"time":"2025-09-04T15:36:34.884036-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-04T15:36:34.884643-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_25\")","namespace":""}
+{"time":"2025-09-04T15:36:34.884827-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_25/events.out.tfevents.1757014584.MacBook-Pro-27.local.8264.0","runPath":"tensorboard_log/PPO_25/events.out.tfevents.1757014584.MacBook-Pro-27.local.8264.0"}
+{"time":"2025-09-04T15:37:35.043738-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000369709}],"total_operations":1}}
+{"time":"2025-09-04T15:37:35.527474-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-04T15:37:35.825284-04:00","level":"INFO","msg":"stream: closing","id":"nmrijwyz"}
+{"time":"2025-09-04T15:37:35.825332-04:00","level":"INFO","msg":"handler: closed","stream_id":"nmrijwyz"}
+{"time":"2025-09-04T15:37:35.825457-04:00","level":"INFO","msg":"sender: closed","stream_id":"nmrijwyz"}
+{"time":"2025-09-04T15:37:35.825478-04:00","level":"INFO","msg":"stream: closed","id":"nmrijwyz"}

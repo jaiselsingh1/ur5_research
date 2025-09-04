@@ -167,7 +167,7 @@ class ur5(MujocoEnv):
             reward = -1.0 * pos_error
             
             if pos_error < 0.05:
-                reward += 1000
+                reward += 500
 
         
             # if self.data.time % 1.0 < 0.04:  

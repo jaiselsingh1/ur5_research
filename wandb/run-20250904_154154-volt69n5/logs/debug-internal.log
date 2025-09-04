@@ -1,0 +1,15 @@
+{"time":"2025-09-04T15:41:55.002522-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-04T15:41:55.195582-04:00","level":"INFO","msg":"stream: created new stream","id":"volt69n5"}
+{"time":"2025-09-04T15:41:55.195861-04:00","level":"INFO","msg":"stream: started","id":"volt69n5"}
+{"time":"2025-09-04T15:41:55.195873-04:00","level":"INFO","msg":"sender: started","stream_id":"volt69n5"}
+{"time":"2025-09-04T15:41:55.19585-04:00","level":"INFO","msg":"handler: started","stream_id":"volt69n5"}
+{"time":"2025-09-04T15:41:55.195889-04:00","level":"INFO","msg":"writer: started","stream_id":"volt69n5"}
+{"time":"2025-09-04T15:42:07.218318-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-04T15:42:07.218709-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_26\")","namespace":""}
+{"time":"2025-09-04T15:42:07.219897-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_26/events.out.tfevents.1757014917.MacBook-Pro-27.local.8529.0","runPath":"tensorboard_log/PPO_26/events.out.tfevents.1757014917.MacBook-Pro-27.local.8529.0"}
+{"time":"2025-09-04T15:42:52.179816-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000596958}],"total_operations":1}}
+{"time":"2025-09-04T15:42:52.597884-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-04T15:42:52.903885-04:00","level":"INFO","msg":"stream: closing","id":"volt69n5"}
+{"time":"2025-09-04T15:42:52.90405-04:00","level":"INFO","msg":"sender: closed","stream_id":"volt69n5"}
+{"time":"2025-09-04T15:42:52.904226-04:00","level":"INFO","msg":"handler: closed","stream_id":"volt69n5"}
+{"time":"2025-09-04T15:42:52.904243-04:00","level":"INFO","msg":"stream: closed","id":"volt69n5"}
