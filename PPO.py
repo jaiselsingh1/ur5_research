@@ -35,7 +35,7 @@ def main():
             "env_id": "UR5-v0",
             "algorithm": "PPO",
             "n_steps": 2048,
-            "total_timesteps": 100_000,
+            "total_timesteps": 300_000,
             "num_cpu": 4,
             "log_std_init": -1.50, 
         }, 
@@ -86,7 +86,7 @@ def main():
         )
     ])
 
-    model.learn(total_timesteps=100_000, callback=callbacks) #callback=WandbCallback(verbose=2))
+    model.learn(total_timesteps=300_000, callback=callbacks) #callback=WandbCallback(verbose=2))
 
     eval_env_human = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
