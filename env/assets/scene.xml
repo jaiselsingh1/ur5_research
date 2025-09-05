@@ -38,8 +38,16 @@
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" pos="0 0 -1"/>
     <body pos="0.502 0.0 -0.18">
       <geom name="table" type="box" size="0.3 0.6 0.03" mass="2.7" rgba="0.5 0.5 0.5 0.3" condim="6"/>
+
+      <!-- Add invisible walls around table perimeter -->
+      <geom name="wall_front" type="box" size="0.3 0.01 0.1" pos="0 0.6 0.1" rgba="0 0 0 0" group="2"/>
+      <geom name="wall_back" type="box" size="0.3 0.01 0.1" pos="0 -0.6 0.1" rgba="0 0 0 0" group="2"/>
+      <geom name="wall_left" type="box" size="0.01 0.6 0.1" pos="-0.3 0 0.1" rgba="0 0 0 0" group="2"/>
+      <geom name="wall_right" type="box" size="0.01 0.6 0.1" pos="0.3 0 0.1" rgba="0 0 0 0" group="2"/>
+
        <inertial pos="0 0 0" mass="2.7" diaginertia="0.003406 0.003406 0.004896"/>
     </body>
+    
     <body name="tape_roll" pos="0.502 -0.05 -0.1175">
     <!-- <body name="tape_roll" pos="0.502 -0.5 -0.1175"> -->
       <freejoint name="root"/>

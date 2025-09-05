@@ -1,0 +1,15 @@
+{"time":"2025-09-05T00:08:58.445759-04:00","level":"INFO","msg":"stream: starting","core version":"0.21.3"}
+{"time":"2025-09-05T00:08:58.697496-04:00","level":"INFO","msg":"stream: created new stream","id":"c8wa54o6"}
+{"time":"2025-09-05T00:08:58.697543-04:00","level":"INFO","msg":"handler: started","stream_id":"c8wa54o6"}
+{"time":"2025-09-05T00:08:58.697557-04:00","level":"INFO","msg":"stream: started","id":"c8wa54o6"}
+{"time":"2025-09-05T00:08:58.697588-04:00","level":"INFO","msg":"sender: started","stream_id":"c8wa54o6"}
+{"time":"2025-09-05T00:08:58.69761-04:00","level":"INFO","msg":"writer: started","stream_id":"c8wa54o6"}
+{"time":"2025-09-05T00:09:10.740925-04:00","level":"WARN","msg":"tensorboard: no root directory","error":"timed out after 10s"}
+{"time":"2025-09-05T00:09:10.741257-04:00","level":"INFO","msg":"tensorboard: tracking new log directory","rootDir":{},"logDir":"LocalOrCloudPath(LocalPath=\"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_28\")","namespace":""}
+{"time":"2025-09-05T00:09:10.742617-04:00","level":"INFO","msg":"tensorboard: saving file","fileLocation":"/Users/jaiselsingh/Desktop/research/tensorboard_log/PPO_28/events.out.tfevents.1757045340.Mac.lan.9788.0","runPath":"tensorboard_log/PPO_28/events.out.tfevents.1757045340.Mac.lan.9788.0"}
+{"time":"2025-09-05T00:11:41.12809-04:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.000554959}],"total_operations":1}}
+{"time":"2025-09-05T00:11:41.565904-04:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-05T00:11:41.89312-04:00","level":"INFO","msg":"stream: closing","id":"c8wa54o6"}
+{"time":"2025-09-05T00:11:41.89327-04:00","level":"INFO","msg":"sender: closed","stream_id":"c8wa54o6"}
+{"time":"2025-09-05T00:11:41.893454-04:00","level":"INFO","msg":"handler: closed","stream_id":"c8wa54o6"}
+{"time":"2025-09-05T00:11:41.893471-04:00","level":"INFO","msg":"stream: closed","id":"c8wa54o6"}
