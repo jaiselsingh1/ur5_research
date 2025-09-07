@@ -2,6 +2,7 @@ import mujoco
 import gymnasium as gym
 
 import ur5_env  # this runs gym.register for UR5-v0
+import ur5_push_env # for pushing task
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines3.common.callbacks import EvalCallback, CallbackList
@@ -16,7 +17,7 @@ from datetime import datetime
 
 
 def create_ur5_env():
-    return gym.make("UR5-v0")
+    return gym.make("UR5-v1")
 
 def make_env(env_id: str, rank: int, seed: int = 0):
     def _init():
@@ -32,17 +33,17 @@ def main():
     wandb.init(
         project="ur5-ppo-training",
         config={
-            "env_id": "UR5-v0",
+            "env_id": "UR5-v1",
             "algorithm": "PPO",
             "n_steps": 2048,
             "total_timesteps": 300_000,
             "num_cpu": 4,
             "log_std_init": -1.50, 
         }, 
-        sync_tensorboard=True
+        sync_tensorboard=True 
     )
 
-    env_id = "UR5-v0"
+    env_id = "UR5-v1"
     num_cpu = 4
 
     vec_env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])

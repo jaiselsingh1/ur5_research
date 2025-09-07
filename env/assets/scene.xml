@@ -36,6 +36,13 @@
     <camera name="birdseye_tilted_cam" pos="1.32854304 -0.12251691  1.04471724" xyaxes="0.01745241  0.9998477  -0.         -0.74303164  0.01296967  0.66913061" fovy="42"/>
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" pos="0 0 -1"/>
+
+    <!--target position-->
+    <body name="target_marker" pos="0.7 0.2 -0.1175">
+      <geom name="target" type="cylinder" size="0.03 0.01" rgba="1.0 0.0 0.0 0.8" contype="0" conaffinity="0"/>
+    </body>
+
+
     <body pos="0.502 0.0 -0.18">
       <geom name="table" type="box" size="0.3 0.6 0.03" mass="2.7" rgba="0.5 0.5 0.5 0.3" condim="6"/>
 
@@ -47,7 +54,7 @@
 
        <inertial pos="0 0 0" mass="2.7" diaginertia="0.003406 0.003406 0.004896"/>
     </body>
-    
+
     <body name="tape_roll" pos="0.502 -0.05 -0.1175">
     <!-- <body name="tape_roll" pos="0.502 -0.5 -0.1175"> -->
       <freejoint name="root"/>
