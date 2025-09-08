@@ -6,6 +6,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
 from email.quoprimime import body_check
+import IK
 
 """
 DEFAULT_CAMERA_CONFIG = {
@@ -70,14 +71,17 @@ class ur5(MujocoEnv):
 
         # this makes more sense when you scale it here vs the neural network because then you don't have to write that scalar multiplier for each output
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
+        self.IK = IK.GradientDescentIK(self.model, self.data, 0.5, 0.01, 0.5, )
+
 
     def step(self, action):
         action = np.clip(action, -1.0, 1.0)
 
         # de-normalize the input action to the needed control range
         # this is basically taking the range from [-1,1] and then scaling it for the joints to be able to move around and meet a reward
-        action = self.act_mid + action * self.act_rng
-
+        # action = self.act_mid + action * self.act_rng
+        goal_quat = np.array(0.707, 0.0, 0.0, 0.707)
+        action = self.IK.calculate(np.zeros(6), self.data.qpos, self.data.body("ee_finger").id, goal_quat)
         # enforce vel limits
         # ctrl_feasible = self._ctrl_velocity_limits(action)
         # enforce position limits
@@ -188,13 +192,6 @@ class ur5(MujocoEnv):
                 success_bonus = 1000.0
             
             total_reward = primary_reward + approach_reward + contact_bonus + success_bonus
-            
-            # Debug with new components
-            if self.data.time % 2.0 < 0.04:
-                print(f"EE-object dist: {ee_to_object_error:.3f}")
-                print(f"Primary: {primary_reward:.3f}, Approach: {approach_reward:.3f}")
-                print(f"Contact bonus: {contact_bonus:.3f}, Total: {total_reward:.3f}")
-                print("---")
             
             return total_reward
             
