@@ -73,15 +73,41 @@ class ur5(MujocoEnv):
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
         self.IK = IK.GradientDescentIK(self.model, self.data, 0.5, 0.01, 0.5, )
 
+    def _cartesian_to_joint_velocity(self, action):
+        """Convert Cartesian velocity action to joint velocities using current Jacobian"""
+        # Scale action to actual velocities  
+        linear_vel = action[:3] * 0.1   # [vx, vy, vz] in m/s
+        angular_vel = action[3:] * 0.3  # [wx, wy, wz] in rad/s
+        cartesian_velocity = np.concatenate([linear_vel, angular_vel])
+
+        try:
+            jacp = np.zeros((3, self.model.nv))
+            jacr = np.zeros((3, self.model.nv))
+            mujoco.mj_jacBody(self.model, self.data, jacp, jacr, self.model.body("ee_finger").id)
+            
+            # jacobian from the IK 
+            J_pos = jacp[:, :6]
+            J_rot = jacr[:, :6] 
+            J_full = np.vstack([J_pos, J_rot])
+        
+            # Direct velocity conversion (no iteration needed)
+            joint_velocities = np.linalg.pinv(J_full) @ cartesian_velocity
+            return np.clip(joint_velocities, -2.0, 2.0)
+    
+        except:
+            return np.zeros(6)
+
 
     def step(self, action):
-        action = np.clip(action, -1.0, 1.0)
 
+        action = np.clip(action, -1, 1)
         # de-normalize the input action to the needed control range
         # this is basically taking the range from [-1,1] and then scaling it for the joints to be able to move around and meet a reward
         # action = self.act_mid + action * self.act_rng
-        goal_quat = np.array(0.707, 0.0, 0.0, 0.707)
-        action = self.IK.calculate(np.zeros(6), self.data.qpos, self.data.body("ee_finger").id, goal_quat)
+
+
+        action = self._cartesian_to_joint_velocity(action)
+
         # enforce vel limits
         # ctrl_feasible = self._ctrl_velocity_limits(action)
         # enforce position limits
