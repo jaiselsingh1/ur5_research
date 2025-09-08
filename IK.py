@@ -30,26 +30,38 @@ class GradientDescentIK:
                        min(q[i], self.model.jnt_range[i][1]))
 
     #Gradient Descent pseudocode implementation
-    def calculate(self, goal, init_q, body_id, goal_quat):
+    def calculate(self, goal, init_q, body_id, goal_rot):
         """Calculate the desire joints angles for goal"""
         self.data.qpos = init_q
         mujoco.mj_forward(self.model, self.data)
-        current_pose = self.data.body(body_id).xpos
-        current_rotation = self.data.body(body_id).xquat
+   
+
+        
+        mujoco.mj_jac(self.model, self.data, self.jacp, 
+            self.jacr, goal, body_id)
+        
+        joint_vel = self.data.qvel()
+        ee_vel_rot = joint_vel @ self.jacr
+        ee_vel_pos = joint_vel @ self.jacp
+
         # debugger 
         import ipdb 
         ipdb.set_trace()
-        error = np.subtract(goal, current_pose)
-        rotation_error = quat_distance(goal_quat, current_rotation)
+        error = goal - ee_vel_pos
+        error_rot = goal_rot - ee_vel_rot
+
 
         while (np.linalg.norm(error) >= self.tol):
             #calculate jacobian
             mujoco.mj_jac(self.model, self.data, self.jacp, 
                           self.jacr, goal, body_id)
+            
             #calculate gradient
             grad = self.alpha * self.jacp.T @ error
+
             #compute next step
             self.data.qpos += self.step_size * grad
+
             #check joint limits
             self.check_joint_limits(self.data.qpos)
             #compute forward kinematics
