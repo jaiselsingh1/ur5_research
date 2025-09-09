@@ -6,6 +6,7 @@ from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
 
 import cc_with_cmd as cc  # Cartesian controller
+from scipy.spatial.transform import Rotation 
 
 gym.register(
     id="UR5-v1",
@@ -57,14 +58,30 @@ class ur5(MujocoEnv):
         q_current = self.data.qpos[:6].copy()
 
         # accumulate deltas
+        # the step_factor is action scaling which is indpedent from the learning that's done by the PPO hyper params 
+        step_factor = 0.3 
         self.ee_target_pos += np.array([
-            action[0] * 0.05,
-            action[1] * 0.05,
-            action[2] * 0.05,
+            action[0] * step_factor,
+            action[1] * step_factor,
+            action[2] * step_factor
         ])
 
-        # keep orientation fixed and ensure it's normalized
+        rotation_increment = np.array([
+            action[3] * step_factor, 
+            action[4] * step_factor, 
+            action[5] * step_factor
+        ])
+
+        current_rot = Rotation.from_quat(self.ee_target_quat, scalar_first=True)
+        increment_rot = Rotation.from_rotvec(rotation_increment)
+        new_rot = increment_rot * current_rot
+        self.ee_target_quat = new_rot.as_quat(scalar_first=True)
+
+        # Normalize quaternion
         desired_quat = self._normalize_quaternion(self.ee_target_quat)
+
+        # keep orientation fixed and ensure it's normalized
+        # desired_quat = self._normalize_quaternion(self.ee_target_quat)
 
         # command to controller
         command = cc.Command(
@@ -81,6 +98,7 @@ class ur5(MujocoEnv):
             dq = self.cartesian_controller.cartesian_command(q_current, command)
             dq = np.clip(dq, -self.act_rng, self.act_rng)
             self.do_simulation(dq, self.frame_skip)
+
         except Exception as e:
             print(f"Cartesian controller error: {e}")
             # Fall back to zero velocities if controller fails
@@ -146,17 +164,35 @@ class ur5(MujocoEnv):
             tape_roll_xpos = self.data.body("tape_roll").xpos
             ee_finger_xpos = self.data.body("ee_finger").xpos
 
-            pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-            reward = -1.0 * pos_error
-            
-            if pos_error < 0.05:
-                reward += 500
+            target_position = np.array([0.7, 0.2, -0.1175])
+            # Distance from end effector to tape roll
+            ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+            # Distance from tape roll to target position
+            object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
+
+            reward = -10.0 * ee_to_object
+
+            # if ee_to_object > 0.1:
+            #     # first get the ee to the object 
+            #     reward = -10.0 * ee_to_object
+            # else: # if it's already close by try and push 
+            #     reward = -1.0 * ee_to_object - 5.0 * object_to_target
+            # #  extra bonus if the end effector is making contact 
+            #     if ee_to_object < 0.05:
+            #         reward += 100
+
+            # # bigger bonus for getting object to target
+            # if object_to_target < 0.05:
+            #     reward += 1000
 
             return reward
-        
+
         except Exception as e:
             print(f"Reward collection error: {e}")
             return 0.0
+
+
+        
 
 
 
