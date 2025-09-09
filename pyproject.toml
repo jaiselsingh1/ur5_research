@@ -12,6 +12,7 @@ dependencies = [
     "mujoco>=3.3.5",
     "numpy>=2.3.2",
     "rich>=14.1.0",
+    "scipy>=1.16.1",
     "stable-baselines3>=2.7.0",
     "tensorboard>=2.20.0",
     "tqdm>=4.67.1",

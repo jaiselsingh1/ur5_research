@@ -6,6 +6,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
 from email.quoprimime import body_check
+from scipy.spatial.transform import Rotation as R
 import IK
 
 """
@@ -71,32 +72,58 @@ class ur5(MujocoEnv):
 
         # this makes more sense when you scale it here vs the neural network because then you don't have to write that scalar multiplier for each output
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(num_actuators,), dtype=np.float64)
+
         self.IK = IK.GradientDescentIK(self.model, self.data, 0.5, 0.01, 0.5, )
 
     def _cartesian_to_joint_velocity(self, action):
-        """Convert Cartesian velocity action to joint velocities using current Jacobian"""
-        # Scale action to actual velocities  
-        linear_vel = action[:3] * 0.1   # [vx, vy, vz] in m/s
-        angular_vel = action[3:] * 0.3  # [wx, wy, wz] in rad/s
-        cartesian_velocity = np.concatenate([linear_vel, angular_vel])
+        # Scale the action to desired delta pose
+        delta_pos = action[:3] * 0.05  
+        delta_rot = action[3:] * 0.2  
 
-        try:
-            jacp = np.zeros((3, self.model.nv))
-            jacr = np.zeros((3, self.model.nv))
-            mujoco.mj_jacBody(self.model, self.data, jacp, jacr, self.model.body("ee_finger").id)
-            
-            # jacobian from the IK 
-            J_pos = jacp[:, :6]
-            J_rot = jacr[:, :6] 
-            J_full = np.vstack([J_pos, J_rot])
-        
-            # Direct velocity conversion (no iteration needed)
-            joint_velocities = np.linalg.pinv(J_full) @ cartesian_velocity
-            return np.clip(joint_velocities, -2.0, 2.0)
-    
-        except:
+        ee_id = self.model.body("ee_finger").id
+        current_pos = self.data.body(ee_id).xpos.copy()
+        current_quat = self.data.body(ee_id).xquat.copy()
+
+        # compute goal position
+        goal_pos = current_pos + delta_pos
+
+        # Convert delta_rot (axis-angle) to quaternion
+        rotvec = delta_rot  # already in radians
+        delta_quat = R.from_rotvec(rotvec).as_quat()  # [x,y,z,w]
+        delta_quat = np.array([delta_quat[3], delta_quat[0], delta_quat[1], delta_quat[2]])  # reorder to [w,x,y,z]
+
+        # Compose goal quaternion
+        goal_quat = self._quat_multiply(current_quat, delta_quat)
+
+        # Current joint state
+        q_current = self.data.qpos[:6].copy()
+
+        # Solve IK
+        q_next = self.IK.calculate(goal_pos, q_current, ee_id, goal_quat)
+
+        if q_next is None:
+            # IK failed: return zero velocities (no movement)
             return np.zeros(6)
 
+        # Joint velocity command (delta q / dt)
+        dt = self.model.opt.timestep * self.frame_skip
+        joint_velocities = (q_next - q_current) / dt
+
+        # Clip within actuator limits from the XML 
+        vel_limits = np.array([3.15, 3.15, 3.15, 3.2, 3.2, 3.2])
+        return np.clip(joint_velocities, -vel_limits, vel_limits)
+    
+
+    def _quat_multiply(self, q1, q2):
+        """Quaternion multiplication, [w,x,y,z] convention."""
+        w1, x1, y1, z1 = q1
+        w2, x2, y2, z2 = q2
+        return np.array([
+            w1*w2 - x1*x2 - y1*y2 - z1*z2,
+            w1*x2 + x1*w2 + y1*z2 - z1*y2,
+            w1*y2 - x1*z2 + y1*w2 + z1*x2,
+            w1*z2 + x1*y2 - y1*x2 + z1*w2
+        ])
 
     def step(self, action):
 
@@ -104,7 +131,6 @@ class ur5(MujocoEnv):
         # de-normalize the input action to the needed control range
         # this is basically taking the range from [-1,1] and then scaling it for the joints to be able to move around and meet a reward
         # action = self.act_mid + action * self.act_rng
-
 
         action = self._cartesian_to_joint_velocity(action)
 
