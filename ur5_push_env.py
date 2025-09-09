@@ -5,7 +5,7 @@ import gymnasium as gym
 from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
 
-import cc  # Cartesian controller
+import cc_with_cmd as cc  # Cartesian controller
 
 gym.register(
     id="UR5-v1",
@@ -38,20 +38,28 @@ class ur5(MujocoEnv):
     def step(self, action):
         action = np.clip(action, -1, 1)
 
-        # Current joint state
+        # current joint state
         q_current = self.data.qpos[:6].copy()
 
-        # Convert action array to Command object
-        # action is [dx, dy, dz, drx, dry, drz] format
+        ee_pos = self.data.body("ee_finger").xpos.copy()
+        ee_quat = self.data.body("ee_finger").xquat.copy()  # [w, x, y, z] in mujoco
+
+        desired_pos = ee_pos + np.array([
+        action[0] * 0.05,  # smaller step sizes (0.02 m = 2 cm)
+        action[1] * 0.05,
+        action[2] * 0.05,
+        ])
         
+        desired_quat = ee_quat  
+
         command = cc.Command(
-            trans_x=action[0] * 0.1,  # Scale translational commands
-            trans_y=action[1] * 0.1,
-            trans_z=action[2] * 0.1,
-            rot_x=0.0,  # Or use action[3] if you want rotational control
-            rot_y=0.0,  # Or use action[4] if you want rotational control  
-            rot_z=0.0,  # Or use action[5] if you want rotational control
-            rot_w=1.0   # Identity quaternion
+        trans_x=desired_pos[0],
+        trans_y=desired_pos[1],
+        trans_z=desired_pos[2],
+        rot_x=desired_quat[1],
+        rot_y=desired_quat[2],
+        rot_z=desired_quat[3],
+        rot_w=desired_quat[0]
         )
         
         # Map action → joint velocities via controller
@@ -59,8 +67,7 @@ class ur5(MujocoEnv):
 
         # Clip velocities
         dq = np.clip(dq, -self.act_rng, self.act_rng)
-
-        # Apply simulation
+        # Apply simulation 
         self.do_simulation(dq, self.frame_skip)
 
         if self.render_mode == "human":
@@ -114,23 +121,26 @@ class ur5(MujocoEnv):
         return self._get_obs()
 
     def get_reward(self):
-        tape_roll_xpos = self.data.body("tape_roll").xpos
-        ee_finger_xpos = self.data.body("ee_finger").xpos
-        target_position = np.array([0.7, 0.2, -0.1175])
 
-        object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
-        ee_to_object_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+        #tape_roll_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "tape_roll")
+        #end_effector_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "ee_finger")
 
-        primary_reward = -1.0 * object_to_target_error
-        approach_reward = -10.0 * ee_to_object_error
+        # enum is a data structure that has different types, that has named access
+        try:
+            tape_roll_xpos = self.data.body("tape_roll").xpos
+            ee_finger_xpos = self.data.body("ee_finger").xpos
 
-        contact_bonus = 0.0
-        if ee_to_object_error < 0.2:
-            contact_bonus = 50.0 * (0.2 - ee_to_object_error)
+            pos_error = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+            reward = -1.0 * pos_error
+            
+            if pos_error < 0.05:
+                reward += 500
 
-        success_bonus = 1000.0 if object_to_target_error < 0.05 else 0.0
-
-        return primary_reward + approach_reward + contact_bonus + success_bonus
+            return reward
+        
+        except Exception as e:
+            print(f"Reward collection error: {e}")
+            return 0.0 
 
 
 
