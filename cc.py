@@ -1,4 +1,19 @@
 
+import numpy as np
+from scipy.spatial.transform import Rotation
+import math
+
+class Command():
+            def __init__(self, trans_x, trans_y, trans_z, rot_x, rot_y, rot_z, rot_w):
+                self.trans_x = trans_x
+                self.trans_y = trans_y
+                self.trans_z = trans_z
+                self.rot_x = rot_x
+                self.rot_y = rot_y
+                self.rot_z = rot_z
+                self.rot_w = rot_w
+
+
 class CartesianController(object):
     """
     ADAPTED FROM: https://github.com/roamlab/roam_bimm/blob/master/single_arm_teleoperation/teleop/src/control/cartesian_control.py
@@ -78,18 +93,18 @@ class CartesianController(object):
             -1.56468767,
             1.40254659,
         ] """
-        """ printa()
-        printa("joint values", joint_values) """
+        """ print()
+        print("joint values", joint_values) """
         for i_joint in range(6):
             # T[np.abs(T) < 1e-7] = 0.0
-            printk(
-                "\n JOINT",
-                i_joint,
-                # mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_JOINT, i_joint),
-                # dir(self.mj_model.joint(i_joint)),
-                # dir(self.mj_data.joint(i_joint)),
-            )
-            """ printa(
+            # print(
+            #     "\n JOINT",
+            #     i_joint,
+            #     # mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_JOINT, i_joint),
+            #     # dir(self.mj_model.joint(i_joint)),
+            #     # dir(self.mj_data.joint(i_joint)),
+            # )
+            """ print(
                 "  body ",
                 self.mj_model.joint(i_joint).bodyid,
                 self.mj_model.body(self.mj_model.joint(i_joint).bodyid).name,
@@ -99,28 +114,28 @@ class CartesianController(object):
             prev_T_curr[:3, 3] = self.mj_model.body(
                 self.mj_model.joint(i_joint).bodyid
             ).pos
-            printk(
-                type(self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos),
-                self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos.dtype,
-                self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos,
-            )
-            printk("prev_T_curr translation\n", prev_T_curr, 6)
+            # print(
+            #     type(self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos),
+            #     self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos.dtype,
+            #     self.mj_model.body(self.mj_model.joint(i_joint).bodyid).pos,
+            # )
+            # print("prev_T_curr translation\n", prev_T_curr, 6)
 
             # static part (link)
             rot = np.eye(4, 4)
-            """ printa(
+            """ print(
                 self.mj_model.body(self.mj_model.joint(i_joint).bodyid),
                 # self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat,
                 dir(self.mj_model.body(self.mj_model.joint(i_joint).bodyid)),
             ) """
             quat = self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat
             # Custom code to fix inconsistency between URDF files and mujoco (see README). If quaternion from mujoco is close to quat obtained from raw URDF euler angle data, then keep the latter quat (which will be slightly different)
-            printk(
-                "quat, quat_from_urdf_rpy, all_close",
-                quat,
-                self.quat_from_urdf_rpy_y,
-                np.allclose(quat, self.quat_from_urdf_rpy_y),
-            )
+            # print(
+            #     "quat, quat_from_urdf_rpy, all_close",
+            #     quat,
+            #     self.quat_from_urdf_rpy_y,
+            #     np.allclose(quat, self.quat_from_urdf_rpy_y),
+            # )
             quat = self._replace_quat_with_urdf_precision(quat)
             """ if np.allclose(quat, self.quat_from_urdf_rpy):
                 quat = self.quat_from_urdf_rpy """
@@ -129,15 +144,15 @@ class CartesianController(object):
                 quat,
                 scalar_first=True,
             ).as_matrix()
-            printk(
-                "quat",
-                type(self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat),
-                self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat.dtype,
-                self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat,
-                Rotation.from_euler("xyz", [0.0, 1.5707963267948966, 0.0]).as_quat(
-                    scalar_first=True
-                ),
-            )
+            # print(
+            #     "quat",
+            #     type(self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat),
+            #     self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat.dtype,
+            #     self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat,
+            #     Rotation.from_euler("xyz", [0.0, 1.5707963267948966, 0.0]).as_quat(
+            #         scalar_first=True
+            #     ),
+            # )
             """ rot[:3, :3] = Rotation.from_quat(
                 Rotation.from_euler("xyz", [0.0, 1.5707963267948966, 0.0]).as_quat(
                     scalar_first=True
@@ -145,18 +160,18 @@ class CartesianController(object):
                 scalar_first=True,
             ).as_matrix() """  # TODO: delete this line
             # exit()
-            printk(
-                "prev_T_curr rot\n",
-                # self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat,
-                rot,
-            )
+            # print(
+            #     "prev_T_curr rot\n",
+            #     # self.mj_model.body(self.mj_model.joint(i_joint).bodyid).quat,
+            #     rot,
+            # )
 
             prev_T_curr = np.dot(prev_T_curr, rot)
-            printk("prev_T_curr trans and rot\n", prev_T_curr)
+            # print("prev_T_curr trans and rot\n", prev_T_curr)
 
             T = np.dot(T, prev_T_curr)
             # T[np.abs(T) < 1e-7] = 0.0
-            printk("T before\n", T)
+            # print("T before\n", T)
             transforms_from_base.append(T.copy())
 
             # dynamic part (joint)
@@ -164,7 +179,7 @@ class CartesianController(object):
                 self.mj_model.joint(i_joint).type == 3
             ), f"Wrong joint type: {self.mj_model.joint(i_joint).type}"
             T_rot = np.eye(4, 4)
-            """ printa(
+            """ print(
                 "axis, val, norm",
                 self.mj_model.joint(i_joint).axis,
                 joint_values[i_joint],
@@ -175,48 +190,48 @@ class CartesianController(object):
             T_rot[:3, :3] = Rotation.from_rotvec(
                 self.mj_model.joint(i_joint).axis * joint_values[i_joint]
             ).as_matrix()
-            printk(
-                "axis",
-                self.mj_model.joint(i_joint).axis.dtype,
-                self.mj_model.joint(i_joint).axis,
-            )
-            printk("T_rot\n", T_rot)
+            # print(
+            #     "axis",
+            #     self.mj_model.joint(i_joint).axis.dtype,
+            #     self.mj_model.joint(i_joint).axis,
+            # )
+            # print("T_rot\n", T_rot)
             T = np.dot(T, T_rot)
             # T[np.abs(T) < 1e-7] = 0.0
-            printk("T after\n", T)
+            # print("T after\n", T)
 
         # last link (EE box) is attached to wrist via fixed joint that mujoco ignores so need to go body-to-body directly
         prev_T_curr = np.eye(4, 4)
         last_bodyid = self.mj_model.joint(i_joint).bodyid + 1
         prev_T_curr[:3, 3] = self.mj_model.body(last_bodyid).pos
-        printk("prev_T_curr translation\n", prev_T_curr)
+        # print("prev_T_curr translation\n", prev_T_curr)
 
         rot = np.eye(4, 4)
-        """ printk(
+        """ print(
             self.mj_model.body(last_bodyid),
         ) """
         quat = self.mj_model.body(last_bodyid).quat
         # Custom code to fix inconsistency between URDF files and mujoco (see README). If quaternion from mujoco is close to quat obtained from raw URDF euler angle data, then keep the latter quat (which will be slightly different)
-        printk(
-            "quat, quat_from_urdf_rpy, all_close",
-            quat,
-            self.quat_from_urdf_rpy_y,
-            np.allclose(quat, self.quat_from_urdf_rpy_y),
-        )
+        # print(
+        #     "quat, quat_from_urdf_rpy, all_close",
+        #     quat,
+        #     self.quat_from_urdf_rpy_y,
+        #     np.allclose(quat, self.quat_from_urdf_rpy_y),
+        # )
         quat = self._replace_quat_with_urdf_precision(quat)
         rot[:3, :3] = Rotation.from_quat(
             quat,
             scalar_first=True,
         ).as_matrix()
-        printk("prev_T_curr rot\n", quat, rot)
+        # print("prev_T_curr rot\n", quat, rot)
 
         prev_T_curr = np.dot(prev_T_curr, rot)
-        printk("prev_T_curr trans and rot\n", prev_T_curr)
+        # print("prev_T_curr trans and rot\n", prev_T_curr)
 
         T = np.dot(T, prev_T_curr)
         # T[np.abs(T) < 1e-7] = 0.0
 
-        printk("T final\n", T)
+        # print("T final\n", T)
 
         return transforms_from_base, T  # bTee
 
@@ -301,8 +316,8 @@ class CartesianController(object):
         joint_transforms, b_T_ee = self.forward_kinematics(q_current)
         # b_T_ee is different compared to ROS setup when loading mjcf/xml file (as opposed to urdf file where error doesnt occur) in that some 0's have sign flipped. This propagates down to an actually different dq, which is a problem!
         """ for i, transform in enumerate(joint_transforms):
-            printk(i, "\n", transform.round(4))
-        printk(
+            print(i, "\n", transform.round(4))
+        print(
             "Kinematics",
             len(joint_transforms),
             "\n",
@@ -313,16 +328,16 @@ class CartesianController(object):
         ) """
 
         """ for i, transform in enumerate(joint_transforms):
-            printa(i)
-            printa(np.round(transform, 3)) """
-        # printa(np.round(b_T_ee, 3))
+            print(i)
+            print(np.round(transform, 3)) """
+        # print(np.round(b_T_ee, 3))
 
         # Obtain desired pose from command:
         """ trans = tf.transformations.translation_matrix(
             (command.translation.x, command.translation.y, command.translation.z)
         ) """
         trans = np.eye(4)
-        """ printa("x_command", x_command) """
+        """ print("x_command", x_command) """
         trans[:3, 3] = np.array(
             [
                 x_command.trans_x,
@@ -330,7 +345,7 @@ class CartesianController(object):
                 x_command.trans_z,
             ]
         )
-        """ printk("desired, trans\n", trans.round(4)) """
+        """ print("desired, trans\n", trans.round(4)) """
 
         """ rot = tf.transformations.quaternion_matrix(
             (
@@ -351,19 +366,19 @@ class CartesianController(object):
                 ]
             )
         ).as_matrix()
-        """ printk("desired, rot\n", rot.round(4)) """
+        """ print("desired, rot\n", rot.round(4)) """
         b_T_des = np.dot(trans, rot)
-        """ printk("b_T_des desired trans@rot\n", b_T_des.round(4)) """
+        """ print("b_T_des desired trans@rot\n", b_T_des.round(4)) """
 
         # Obtain end effector pose delta to move towards command:
         # c_T_des = np.dot(tf.transformations.inverse_matrix(b_T_ee), b_T_des)
-        """ printk("inv(b_T_ee)*\n", np.linalg.inv(b_T_ee).round(4)) """
+        """ print("inv(b_T_ee)*\n", np.linalg.inv(b_T_ee).round(4)) """
         ee_T_des = np.dot(
             np.linalg.inv(b_T_ee), b_T_des
         )  # THIS IS DIFFERENT FROM tf.transformations.inverse_matrix(b_T_ee) in that some 0's have different signs
-        """ printk("c_T_des* \n", ee_T_des.round(4)) """
+        """ print("c_T_des* \n", ee_T_des.round(4)) """
         # ee_T_des[np.abs(ee_T_des) < 1e-9] = 0.0
-        """ printk("c_T_des after* \n", ee_T_des.round(4)) """
+        """ print("c_T_des after* \n", ee_T_des.round(4)) """
 
         # Get desired translational velocity in local frame
         """ dx_e = np.zeros(3)
@@ -371,56 +386,56 @@ class CartesianController(object):
         dx_e[1] = c_T_des[1][3]
         dx_e[2] = c_T_des[2][3] """
         dx_e = ee_T_des[:3, 3]
-        """ printk("dx_e 1\n", dx_e.round(4)) """
+        """ print("dx_e 1\n", dx_e.round(4)) """
 
         dx_e *= self.trans_gain
         # dx_e += gain * velocity error
         # velocity error =
-        """ printk("dx_e 2\n", dx_e.round(4)) """
+        """ print("dx_e 2\n", dx_e.round(4)) """
 
         # Normalize to obtain max end-effector velocity of 0.1m/s
         if np.linalg.norm(dx_e) > self.max_vel_trans:
             dx_e = (self.max_vel_trans / np.linalg.norm(dx_e)) * dx_e
-            """ printk("dx_e 3\n", dx_e.round(4)) """
+            """ print("dx_e 3\n", dx_e.round(4)) """
 
         # Get desired angular velocity in local frame
         # c_R_des = c_T_des[0:3, 0:3]
         ee_R_des = ee_T_des[:3, :3]
-        """ printk("ee_R_des\n", ee_R_des.round(4)) """
+        """ print("ee_R_des\n", ee_R_des.round(4)) """
         ee_rot_des = Rotation.from_matrix(ee_R_des)
         rotationvec = ee_rot_des.as_rotvec()
-        """ printk("rotationvec", rotationvec) """
+        """ print("rotationvec", rotationvec) """
         angle = np.linalg.norm(rotationvec)
         axis = rotationvec / angle
-        """ printk("angle, axis", angle, axis) """
+        """ print("angle, axis", angle, axis) """
         angle, axis = self.rotation_from_matrix(ee_R_des)
-        """ printk("angle, axis", angle, axis) """
+        """ print("angle, axis", angle, axis) """
         # angle, axis = self.kinematics.rotation_from_matrix(c_R_des)
         dw_e = angle * axis
-        """ printk("dw_e 1\n", dw_e.round(4)) """
+        """ print("dw_e 1\n", dw_e.round(4)) """
 
         dw_e *= self.rot_gain
-        """ printk("dw_e 2\n", dw_e.round(4)) """
+        """ print("dw_e 2\n", dw_e.round(4)) """
 
         # Normalize to max end-effector angular velocity of 1 rad/s
         if np.linalg.norm(dw_e) > self.max_vel_ang:
             dw_e = (self.max_vel_ang / np.linalg.norm(dw_e)) * dw_e
-            """ printk("dw_e 3\n", dw_e.round(4)) """
+            """ print("dw_e 3\n", dw_e.round(4)) """
 
         # Assemble twist (translational and angular velocities vector)
         dv_e = np.zeros(6)
         dv_e[0:3] = dx_e
         dv_e[3:6] = dw_e
-        """ printk("dv_e 3\n", dv_e.round(4)) """
+        """ print("dv_e 3\n", dv_e.round(4)) """
 
         # Convert to joint velocities with jacobian pseudo-inverse
         J = self.get_jacobian(b_T_ee, joint_transforms)
-        """ printk("J\n", J.round(4), J.shape) """
+        """ print("J\n", J.round(4), J.shape) """
         Jps = np.linalg.pinv(J, 1.0e-2)
-        """ printk("J pseudo inverse \n", Jps.round(4), Jps.shape) """
+        """ print("J pseudo inverse \n", Jps.round(4), Jps.shape) """
         dq = np.dot(Jps, dv_e)
         # dq[-3:] = 0.0  # TODO: deactivate this when it works as it should
-        printa("dq", np.round(dq, 4), dq.shape)
+        # print("dq", np.round(dq, 4), dq.shape)
 
         # exit()
 
