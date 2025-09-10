@@ -1,4 +1,3 @@
-
 import numpy as np
 import mujoco
 import gymnasium as gym
@@ -31,10 +30,14 @@ class ur5(MujocoEnv):
         # joint action scaling (used as velocity limits)
         self.act_mid = np.zeros(6)
         self.act_rng = np.array([3.15, 3.15, 3.15, 3.2, 3.2, 3.2])
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float64)
 
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
-        self.ee_target_quat = self.data.body("ee_finger").xquat.copy()
+        
+        # Set a fixed downward-pointing orientation
+        # This creates a quaternion for pointing straight down
+        downward_rotation = Rotation.from_euler('xyz', [np.pi, 0, 0])  # 180° around x-axis
+        self.fixed_ee_quat = downward_rotation.as_quat(scalar_first=True)
 
         # Cartesian controller
         self.cartesian_controller = cc.CartesianController(self.model, self.data)
@@ -57,31 +60,16 @@ class ur5(MujocoEnv):
         # current joint state
         q_current = self.data.qpos[:6].copy()
 
-        # accumulate deltas
-        # the step_factor is action scaling which is indpedent from the learning that's done by the PPO hyper params 
-        step_factor = 0.3 
+        # Only use translation - all 3 actions for position control
+        step_factor = 0.1
         self.ee_target_pos += np.array([
             action[0] * step_factor,
             action[1] * step_factor,
             action[2] * step_factor
         ])
 
-        rotation_increment = np.array([
-            action[3] * step_factor, 
-            action[4] * step_factor, 
-            action[5] * step_factor
-        ])
-
-        current_rot = Rotation.from_quat(self.ee_target_quat, scalar_first=True)
-        increment_rot = Rotation.from_rotvec(rotation_increment)
-        new_rot = increment_rot * current_rot
-        self.ee_target_quat = new_rot.as_quat(scalar_first=True)
-
-        # Normalize quaternion
-        desired_quat = self._normalize_quaternion(self.ee_target_quat)
-
-        # keep orientation fixed and ensure it's normalized
-        # desired_quat = self._normalize_quaternion(self.ee_target_quat)
+        # Keep orientation fixed to downward pointing
+        desired_quat = self._normalize_quaternion(self.fixed_ee_quat)
 
         # command to controller
         command = cc.Command(
@@ -155,7 +143,7 @@ class ur5(MujocoEnv):
         # Reset target pose and ensure quaternion is normalized
         self.set_state(qpos, qvel)
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
-        self.ee_target_quat = self._normalize_quaternion(self.data.body("ee_finger").xquat.copy())
+        # Don't update the fixed quaternion - keep it pointing down
 
         return self._get_obs()
 
@@ -190,9 +178,3 @@ class ur5(MujocoEnv):
         except Exception as e:
             print(f"Reward collection error: {e}")
             return 0.0
-
-
-        
-
-
-
