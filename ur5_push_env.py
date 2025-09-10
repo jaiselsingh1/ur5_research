@@ -36,7 +36,7 @@ class ur5(MujocoEnv):
         
         # Set a fixed downward-pointing orientation
         # This creates a quaternion for pointing straight down
-        downward_rotation = Rotation.from_euler('xyz', [np.pi, 0, 0])  # 180° around x-axis
+        downward_rotation = Rotation.from_euler('xyz', [0, 0, 0])  
         self.fixed_ee_quat = downward_rotation.as_quat(scalar_first=True)
 
         # Cartesian controller
@@ -137,13 +137,37 @@ class ur5(MujocoEnv):
         qpos = self.init_qpos.copy()
         qvel = self.init_qvel.copy()
 
-        qpos[:6] += np.random.uniform(low=-0.1, high=0.1, size=6)
+        # qpos[:6] += np.random.uniform(low=-0.1, high=0.1, size=6)
+        qpos[:6] = np.array([-0.078,-0.73,1.83,-0.74,-4.1,0.42])
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 
         # Reset target pose and ensure quaternion is normalized
         self.set_state(qpos, qvel)
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         # Don't update the fixed quaternion - keep it pointing down
+        desired_quat = self.fixed_ee_quat
+        qpos = self.data.qpos.copy()
+        # for i in range(1000):
+        #     print("new loop")
+        #     command = cc.Command(
+        #     trans_x=self.ee_target_pos[0],
+        #     trans_y=self.ee_target_pos[1],
+        #     trans_z=self.ee_target_pos[2],
+        #     rot_x=desired_quat[1],  # x component
+        #     rot_y=desired_quat[2],  # y component
+        #     rot_z=desired_quat[3],  # z component
+        #     rot_w=desired_quat[0]   # w component
+        # )
+
+        #     dq = self.cartesian_controller.cartesian_command(qpos, command)
+        #     dq = np.clip(dq, -self.act_rng, self.act_rng)
+        #     self.do_simulation(dq, self.frame_skip)
+        #     new_qpos = self.data.qpos.copy()
+        #     print(np.linalg.norm(new_qpos - qpos))
+        #     if np.linalg.norm(new_qpos - qpos) < 1e-4:
+        #         break
+        #     else:
+        #         qpos = new_qpos
 
         return self._get_obs()
 

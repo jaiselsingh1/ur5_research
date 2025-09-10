@@ -1,33 +1,23 @@
 import numpy as np
 import math
 from scipy.spatial.transform import Rotation
-
+import typing
 
 def printk(*to_print):
     """Debug FW kinematics and CC"""
     if False:
         print(*to_print)
 
-class Command:
+class Command(typing.NamedTuple):
     """Desired EE pose"""
-
-    def __init__(
-        self,
-        trans_x: float = 0.0,
-        trans_y: float = 0.0,
-        trans_z: float = 0.0,
-        rot_x: float = 0.0,
-        rot_y: float = 0.0,
-        rot_z: float = 0.0,
-        rot_w: float = 1.0,
-    ):
-        self.trans_x = trans_x
-        self.trans_y = trans_y
-        self.trans_z = trans_z
-        self.rot_x = rot_x
-        self.rot_y = rot_y
-        self.rot_z = rot_z
-        self.rot_w = rot_w
+    trans_x: float = 0.0
+    trans_y: float = 0.0
+    trans_z: float = 0.0
+    rot_x: float = 0.0
+    rot_y: float = 0.0
+    rot_z: float = 0.0
+    rot_w: float = 1.0
+        
 
     def __str__(self):
         p = 3
