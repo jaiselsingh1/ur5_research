@@ -44,14 +44,14 @@ def main():
     )
 
     env_id = "UR5-v1"
-    num_cpu = 10
+    num_cpu = 4
 
     vec_env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
     model = PPO(
         "MlpPolicy", 
         vec_env, 
-        ent_coef=0.01, 
+        ent_coef=0.0, 
         learning_rate=1e-4,
         batch_size=64, 
         n_epochs=10, # do not want to overfit the very small set of data that I am using 
@@ -59,7 +59,7 @@ def main():
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.0, 
+            log_std_init=-1.50, 
         )
     )
     # stochastic policy hence you need to have a std parameter 

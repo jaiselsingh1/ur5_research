@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation
 gym.register(
     id="UR5-v1",
     entry_point="ur5_push_env:ur5",
-    max_episode_steps=1000,
+    max_episode_steps=250,
 )
 
 class ur5(MujocoEnv):
@@ -20,7 +20,7 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(40,), dtype=np.float32),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(41,), dtype=np.float32),
             **kwargs,
         )
 
@@ -101,12 +101,12 @@ class ur5(MujocoEnv):
 
         q_current = self.data.qpos[:6].copy()
 
-        for i in range(self.frame_skip):
+        # for i in range(self.frame_skip):
 
-            dq = self.cartesian_controller.cartesian_command(q_current, cmd)
-            dq = np.clip(dq, -self.act_rng, self.act_rng)
+        dq = self.cartesian_controller.cartesian_command(q_current, cmd)
+        dq = np.clip(dq, -self.act_rng, self.act_rng)
 
-            self.do_simulation(dq, 1)
+        self.do_simulation(dq, self.frame_skip)
 
         if self.render_mode == "human":
             self.render()
@@ -172,17 +172,17 @@ class ur5(MujocoEnv):
         return self._get_obs()
 
     def get_reward(self):
-        try:
-            tape_roll_xpos = self.data.body("tape_roll").xpos
-            ee_finger_xpos = self.data.body("ee_finger").xpos
 
-            target_position = np.array([0.7, 0.2, -0.1175])
-            # Distance from end effector to tape roll
-            ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-            # Distance from tape roll to target position
-            object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
+        tape_roll_xpos = self.data.body("tape_roll").xpos
+        ee_finger_xpos = self.data.body("ee_finger").xpos
 
-            reward = -10.0 * ee_to_object
+        target_position = np.array([0.7, 0.2, -0.1175])
+        # Distance from end effector to tape roll
+        ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
+        # Distance from tape roll to target position
+        object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
+
+        reward = -10.0 * ee_to_object
 
             # if ee_to_object > 0.1:
             #     # first get the ee to the object 
@@ -197,8 +197,4 @@ class ur5(MujocoEnv):
             # if object_to_target < 0.05:
             #     reward += 1000
 
-            return reward
-
-        except Exception as e:
-            print(f"Reward collection error: {e}")
-            return 0.0
+        return reward
