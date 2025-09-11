@@ -44,7 +44,7 @@ def main():
     )
 
     env_id = "UR5-v1"
-    num_cpu = 4
+    num_cpu = 10
 
     vec_env = SubprocVecEnv([make_env(env_id, i) for i in range(num_cpu)])
 
@@ -59,7 +59,7 @@ def main():
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.50, 
+            log_std_init=-1.0, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
@@ -68,7 +68,7 @@ def main():
     # done in log space 
 
     eval_env = DummyVecEnv([lambda: Monitor(gym.make(env_id))])
-
+ 
     eval_callback = EvalCallback(
         eval_env,
         best_model_save_path="./logs/",

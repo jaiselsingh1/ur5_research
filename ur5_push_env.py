@@ -20,27 +20,37 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(38,), dtype=np.float32),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(40,), dtype=np.float32),
             **kwargs,
         )
 
         self.init_qpos = self.data.qpos.copy()
+        self.init_qpos[3] = np.pi
         self.init_qvel = self.data.qvel.copy()
 
         # joint action scaling (used as velocity limits)
         self.act_mid = np.zeros(6)
         self.act_rng = np.array([3.15, 3.15, 3.15, 3.2, 3.2, 3.2])
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float64)
 
+        # action: [dx, dy, dz, d_rx, d_ry, d_rz]
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
+
+        # scaling 
+        self.max_delta_pos = 0.05 # meters per step 
+        self.max_delta_rot = 0.1    # radians per step
+
+        # targets
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
-        
+        self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
+
+        self.cartesian_controller = cc.CartesianController(self.model, self.data)
+        self.ee_finger = self.data.body("ee_finger")
+
         # Set a fixed downward-pointing orientation
         # This creates a quaternion for pointing straight down
-        downward_rotation = Rotation.from_euler('xyz', [0, 0, 0])  
-        self.fixed_ee_quat = downward_rotation.as_quat(scalar_first=True)
+        # downward_rotation = Rotation.from_euler('xyz', [np.pi/2, 0, 3*np.pi/2])  
+        # self.fixed_ee_quat = downward_rotation.as_quat(scalar_first=True)
 
-        # Cartesian controller
-        self.cartesian_controller = cc.CartesianController(self.model, self.data)
 
     def _normalize_quaternion(self, quat):
         """Ensure quaternion is normalized and handle edge cases"""
@@ -55,43 +65,48 @@ class ur5(MujocoEnv):
         return quat / norm
 
     def step(self, action):
-        action = np.clip(action, -1, 1)
+        action = np.clip(action, -1.0, 1.0).astype(np.float64)
 
-        # current joint state
-        q_current = self.data.qpos[:6].copy()
+        # translation update
+        delta_pos = action[:3] * self.max_delta_pos
+        self.ee_target_pos = self.ee_target_pos + delta_pos
 
-        # Only use translation - all 3 actions for position control
-        step_factor = 0.1
-        self.ee_target_pos += np.array([
-            action[0] * step_factor,
-            action[1] * step_factor,
-            action[2] * step_factor
-        ])
-
-        # Keep orientation fixed to downward pointing
-        desired_quat = self._normalize_quaternion(self.fixed_ee_quat)
-
-        # command to controller
-        command = cc.Command(
-            trans_x=self.ee_target_pos[0],
-            trans_y=self.ee_target_pos[1],
-            trans_z=self.ee_target_pos[2],
-            rot_x=desired_quat[1],  # x component
-            rot_y=desired_quat[2],  # y component
-            rot_z=desired_quat[3],  # z component
-            rot_w=desired_quat[0]   # w component
+        # rotation update
+        delta_rot = action[3:] * self.max_delta_rot
+        
+        # Create rotation from delta rotation vector
+        delta_rotation = Rotation.from_rotvec(delta_rot)
+        
+        # Create rotation from current quaternion
+        current_rotation = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
+        
+        # Compose rotations
+        new_rotation = current_rotation * delta_rotation
+        
+        # Convert back to quaternion and normalize
+        self.ee_target_quat = self._normalize_quaternion(
+             new_rotation.as_quat(scalar_first=True)
         )
 
-        try:
-            dq = self.cartesian_controller.cartesian_command(q_current, command)
-            dq = np.clip(dq, -self.act_rng, self.act_rng)
-            self.do_simulation(dq, self.frame_skip)
+        # command to controller
+        cmd = cc.Command(
+            trans_x=float(self.ee_target_pos[0]),
+            trans_y=float(self.ee_target_pos[1]),
+            trans_z=float(self.ee_target_pos[2]),
+            rot_x=float(self.ee_target_quat[1]),
+            rot_y=float(self.ee_target_quat[2]),
+            rot_z=float(self.ee_target_quat[3]),
+            rot_w=float(self.ee_target_quat[0]),
+        )
 
-        except Exception as e:
-            print(f"Cartesian controller error: {e}")
-            # Fall back to zero velocities if controller fails
-            dq = np.zeros(6)
-            self.do_simulation(dq, self.frame_skip)
+        q_current = self.data.qpos[:6].copy()
+
+        for i in range(self.frame_skip):
+
+            dq = self.cartesian_controller.cartesian_command(q_current, cmd)
+            dq = np.clip(dq, -self.act_rng, self.act_rng)
+
+            self.do_simulation(dq, 1)
 
         if self.render_mode == "human":
             self.render()
@@ -107,67 +122,52 @@ class ur5(MujocoEnv):
         truncated = False
 
         return obs, reward, terminated, truncated, {}
+
         
     def _get_obs(self):
         qpos = self.data.qpos[:6]
         qvel = self.data.qvel[:6]
 
         ee_pos = self.data.body("ee_finger").xpos
+        ee_quat = self.ee_finger.xquat
         tape_roll_pos = self.data.body("tape_roll").xpos
         target_pos = np.array([0.7, 0.2, -0.1175])
 
         ee_to_object = tape_roll_pos - ee_pos
         object_to_target = target_pos - tape_roll_pos
-        ee_object_distance = np.linalg.norm(ee_to_object)
-        object_target_distance = np.linalg.norm(object_to_target)
+        # ee_object_distance = np.linalg.norm(ee_to_object)
+        # object_target_distance = np.linalg.norm(object_to_target)
         ee_vel = self.data.body("ee_finger").cvel[:3]
 
-        joint_limits = np.abs(qpos) / 3.14
 
-        obs = np.concatenate([
-            qpos, qvel * 0.1,
-            ee_pos, tape_roll_pos, target_pos,
-            ee_to_object, object_to_target,
-            [ee_object_distance], [object_target_distance],
-            joint_limits, ee_vel * 0.1,
-        ])
+        obs = np.concatenate(
+            [
+                qpos,
+                qvel * 0.1,
+                ee_pos,
+                ee_quat,
+                tape_roll_pos,
+                target_pos,
+                ee_to_object,
+                object_to_target,
+                # [ee_object_distance],
+                # [object_target_distance],
+                ee_vel * 0.1,
+                self.ee_target_pos,
+                self.ee_target_quat,   
+            ]
+        )
         return obs.astype(np.float32)
 
     def reset_model(self):
         qpos = self.init_qpos.copy()
         qvel = self.init_qvel.copy()
 
-        # qpos[:6] += np.random.uniform(low=-0.1, high=0.1, size=6)
-        qpos[:6] = np.array([-0.078,-0.73,1.83,-0.74,-4.1,0.42])
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 
-        # Reset target pose and ensure quaternion is normalized
         self.set_state(qpos, qvel)
-        self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
-        # Don't update the fixed quaternion - keep it pointing down
-        desired_quat = self.fixed_ee_quat
-        qpos = self.data.qpos.copy()
-        # for i in range(1000):
-        #     print("new loop")
-        #     command = cc.Command(
-        #     trans_x=self.ee_target_pos[0],
-        #     trans_y=self.ee_target_pos[1],
-        #     trans_z=self.ee_target_pos[2],
-        #     rot_x=desired_quat[1],  # x component
-        #     rot_y=desired_quat[2],  # y component
-        #     rot_z=desired_quat[3],  # z component
-        #     rot_w=desired_quat[0]   # w component
-        # )
-
-        #     dq = self.cartesian_controller.cartesian_command(qpos, command)
-        #     dq = np.clip(dq, -self.act_rng, self.act_rng)
-        #     self.do_simulation(dq, self.frame_skip)
-        #     new_qpos = self.data.qpos.copy()
-        #     print(np.linalg.norm(new_qpos - qpos))
-        #     if np.linalg.norm(new_qpos - qpos) < 1e-4:
-        #         break
-        #     else:
-        #         qpos = new_qpos
+        self.ee_target_pos = self.ee_finger.xpos.copy()
+        self.ee_target_quat = self.ee_finger.xquat.copy()
 
         return self._get_obs()
 
