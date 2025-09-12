@@ -9,4 +9,5 @@ wheels/
 # Virtual environments
 .venv
 wandb/
-wandb/
+tensorboard_log/
+logs/

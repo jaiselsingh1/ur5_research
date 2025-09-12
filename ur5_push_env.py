@@ -101,12 +101,11 @@ class ur5(MujocoEnv):
 
         q_current = self.data.qpos[:6].copy()
 
-        # for i in range(self.frame_skip):
+        for i in range(self.frame_skip):
+            dq = self.cartesian_controller.cartesian_command(q_current, cmd)
+            dq = np.clip(dq, -self.act_rng, self.act_rng)
 
-        dq = self.cartesian_controller.cartesian_command(q_current, cmd)
-        dq = np.clip(dq, -self.act_rng, self.act_rng)
-
-        self.do_simulation(dq, self.frame_skip)
+            self.do_simulation(dq, 1)
 
         if self.render_mode == "human":
             self.render()
@@ -180,7 +179,7 @@ class ur5(MujocoEnv):
         # Distance from end effector to tape roll
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
         # Distance from tape roll to target position
-        object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
+        # object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
 
         reward = -10.0 * ee_to_object
 
