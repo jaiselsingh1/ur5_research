@@ -3,7 +3,10 @@ import gymnasium as gym
 
 import ur5_env  # this runs gym.register for UR5-v0
 import ur5_push_env # for pushing task
-from stable_baselines3 import PPO
+
+from sbx import PPO 
+# from stable_baselines3 import PPO
+
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines3.common.callbacks import EvalCallback, CallbackList
 from stable_baselines3.common.utils import set_random_seed 
@@ -51,7 +54,7 @@ def main():
     model = PPO(
         "MlpPolicy", 
         vec_env, 
-        ent_coef=0.0, 
+        # ent_coef=0.01, 
         learning_rate=1e-4,
         batch_size=64, 
         n_epochs=5, # do not want to overfit the very small set of data that I am using 
@@ -59,7 +62,7 @@ def main():
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.50, 
+            log_std_init=-1.0, 
         )
     )
     # stochastic policy hence you need to have a std parameter 

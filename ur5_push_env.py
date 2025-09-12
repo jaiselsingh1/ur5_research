@@ -10,13 +10,13 @@ from scipy.spatial.transform import Rotation
 gym.register(
     id="UR5-v1",
     entry_point="ur5_push_env:ur5",
-    max_episode_steps=250,
+    max_episode_steps=500,
 )
 
 class ur5(MujocoEnv):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 12}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
 
-    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=40, **kwargs):
+    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=10, **kwargs):
         super().__init__(
             model_path,
             frame_skip,
@@ -36,8 +36,8 @@ class ur5(MujocoEnv):
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
 
         # scaling 
-        self.max_delta_pos = 0.05 # meters per step 
-        self.max_delta_rot = 0.1    # radians per step
+        self.max_delta_pos = 0.001 # meters per step 
+        self.max_delta_rot = 0.05    # radians per step
 
         # targets
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
@@ -69,7 +69,10 @@ class ur5(MujocoEnv):
 
         # translation update
         delta_pos = action[:3] * self.max_delta_pos
-        self.ee_target_pos = self.ee_target_pos + delta_pos
+
+        # this way the target keeps accumulating 
+        # self.ee_target_pos = self.ee_target_pos + delta_pos
+        self.ee_target_pos = self.ee_finger.xpos.copy() + delta_pos
 
         # rotation update
         delta_rot = action[3:] * self.max_delta_rot
@@ -78,7 +81,7 @@ class ur5(MujocoEnv):
         delta_rotation = Rotation.from_rotvec(delta_rot)
         
         # Create rotation from current quaternion
-        current_rotation = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
+        current_rotation = Rotation.from_quat(self.ee_finger.xquat.copy(), scalar_first=True)
         
         # Compose rotations
         new_rotation = current_rotation * delta_rotation
@@ -117,7 +120,7 @@ class ur5(MujocoEnv):
         target_position = np.array([0.7, 0.2, -0.1175])
         object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
 
-        terminated = object_to_target_error < 0.05
+        terminated = object_to_target_error < 0.05 # within 5 cm 
         truncated = False
 
         return obs, reward, terminated, truncated, {}
@@ -127,6 +130,7 @@ class ur5(MujocoEnv):
         qpos = self.data.qpos[:6]
         qvel = self.data.qvel[:6]
 
+        # in your observation you want .xpos and no .copy() since you want it at that specific state vs controllers
         ee_pos = self.data.body("ee_finger").xpos
         ee_quat = self.ee_finger.xquat
         tape_roll_pos = self.data.body("tape_roll").xpos
@@ -171,29 +175,12 @@ class ur5(MujocoEnv):
         return self._get_obs()
 
     def get_reward(self):
-
         tape_roll_xpos = self.data.body("tape_roll").xpos
         ee_finger_xpos = self.data.body("ee_finger").xpos
+        
 
-        target_position = np.array([0.7, 0.2, -0.1175])
-        # Distance from end effector to tape roll
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-        # Distance from tape roll to target position
-        # object_to_target = np.linalg.norm(tape_roll_xpos - target_position)
-
+        
         reward = -10.0 * ee_to_object
-
-            # if ee_to_object > 0.1:
-            #     # first get the ee to the object 
-            #     reward = -10.0 * ee_to_object
-            # else: # if it's already close by try and push 
-            #     reward = -1.0 * ee_to_object - 5.0 * object_to_target
-            # #  extra bonus if the end effector is making contact 
-            #     if ee_to_object < 0.05:
-            #         reward += 100
-
-            # # bigger bonus for getting object to target
-            # if object_to_target < 0.05:
-            #     reward += 1000
-
+        
         return reward
