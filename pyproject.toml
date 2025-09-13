@@ -14,6 +14,7 @@ dependencies = [
     "mujoco>=3.3.5",
     "mujoco-mjx>=3.3.5",
     "numpy>=2.3.2",
+    "pybind11-stubgen>=2.5.5",
     "rich>=14.1.0",
     "sbx>=0.1.1",
     "sbx-rl>=0.21.0",

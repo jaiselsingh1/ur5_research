@@ -36,7 +36,7 @@ class ur5(MujocoEnv):
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
 
         # scaling 
-        self.max_delta_pos = 0.001 # meters per step 
+        self.max_delta_pos = 0.1 # meters per step 
         self.max_delta_rot = 0.05    # radians per step
 
         # targets
@@ -86,10 +86,11 @@ class ur5(MujocoEnv):
         # Compose rotations
         new_rotation = current_rotation * delta_rotation
         
+        print(self.ee_target_quat, self.ee_finger.xquat.copy())
         # Convert back to quaternion and normalize
-        self.ee_target_quat = self._normalize_quaternion(
-             new_rotation.as_quat(scalar_first=True)
-        )
+        # self.ee_target_quat = self._normalize_quaternion(
+        #      new_rotation.as_quat(scalar_first=True)
+        # )
 
         # command to controller
         cmd = cc.Command(
@@ -178,7 +179,6 @@ class ur5(MujocoEnv):
         tape_roll_xpos = self.data.body("tape_roll").xpos
         ee_finger_xpos = self.data.body("ee_finger").xpos
         
-
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
         
         reward = -10.0 * ee_to_object

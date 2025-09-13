@@ -5,6 +5,7 @@ import ur5_env  # this runs gym.register for UR5-v0
 import ur5_push_env # for pushing task
 
 from sbx import PPO 
+import typing 
 # from stable_baselines3 import PPO
 
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
@@ -17,6 +18,13 @@ from wandb.integration.sb3 import WandbCallback
 
 import os
 from datetime import datetime
+
+class PPOConfig(typing.NamedTuple):
+    n_steps: int = 2048
+    total_timesteps: int = 100_000
+    num_cpu: int = 4
+    log_std_init: float = -1.50
+
 
 
 def create_ur5_env():
@@ -62,7 +70,7 @@ def main():
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-1.0, 
+            log_std_init=-2.0, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
