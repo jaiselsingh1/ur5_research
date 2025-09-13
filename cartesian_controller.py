@@ -92,25 +92,10 @@ class CartesianController(object):
         mj.mj_jacBody(mj.model, mj.data, self.jacp, self.jacr, self.ee_body.id)
 
         # transformation matrix from end effector to world
-        world_from_ee = np.eye(4)
-        world_from_ee[:3,3] = np.array(
-            [
-                x_command.trans_x,
-                x_command.trans_y,
-                x_command.trans_z,
-            ])
+        world_from_ee = homogenous_matrix()
+        # give values from self.body (xpos, xquat) for ee finger
 
-        world_from_ee[:3, :3] = Rotation.from_quat(
-            np.array(
-                [
-                    x_command.rot_x,
-                    x_command.rot_y,
-                    x_command.rot_z,
-                    x_command.rot_w,
-                ]
-            )
-        ).as_matrix()
-        
+        # get a world from ee_desired from the command 
 
 
         # Obtain end effector pose delta to move towards command:
