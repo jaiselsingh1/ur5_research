@@ -171,7 +171,11 @@ class ur5(MujocoEnv):
         qvel = self.init_qvel.copy()
 
         # from the sim
-        qpos[0:6] = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+        base_pose= np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+        # add gaussian noise 
+        noise_std = 0.2 
+        joint_noise = np.random.normal(0, noise_std, 6)
+        qpos[0:6] = base_pose + joint_noise
 
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 
@@ -191,6 +195,6 @@ class ur5(MujocoEnv):
 
         obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
         
-        reward += -10.0 * obj_to_target
+        reward += -5.0 * obj_to_target
         
         return reward

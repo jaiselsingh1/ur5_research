@@ -115,7 +115,7 @@ class CartesianController(object):
 
         qvel = jac_pinv @ xdot_des
 
- 
+
         return qvel
 
         
