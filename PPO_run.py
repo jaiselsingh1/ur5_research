@@ -24,6 +24,7 @@ class PPOConfig(typing.NamedTuple):
     total_timesteps: int = 100_000
     num_cpu: int = 4
     log_std_init: float = -1.50
+    n_epochs: int = 5
 
 
 

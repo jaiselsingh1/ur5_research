@@ -3,8 +3,10 @@ import mujoco
 import gymnasium as gym
 from gymnasium import spaces
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
+import copy 
 
-import cc_with_cmd as cc  # Cartesian controller
+# import cc_with_cmd as cc  # Cartesian controller
+import cartesian_controller as cc 
 from scipy.spatial.transform import Rotation 
 
 gym.register(
@@ -43,6 +45,10 @@ class ur5(MujocoEnv):
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
 
+        # controller randomly sets state to discontinuous position/time 
+        # you can't set the state of the word how the controller does it 
+        # black box analogy where only policy can impact the environment since the policy is the thing that does commands based on controller which is black box
+        # data_copy = copy.deepcopy(self.data)
         self.cartesian_controller = cc.CartesianController(self.model, self.data)
         self.ee_finger = self.data.body("ee_finger")
 
@@ -86,11 +92,11 @@ class ur5(MujocoEnv):
         # Compose rotations
         new_rotation = current_rotation * delta_rotation
         
-        print(self.ee_target_quat, self.ee_finger.xquat.copy())
+        # print(self.ee_target_quat, self.ee_finger.xquat.copy())
         # Convert back to quaternion and normalize
-        # self.ee_target_quat = self._normalize_quaternion(
-        #      new_rotation.as_quat(scalar_first=True)
-        # )
+        self.ee_target_quat = self._normalize_quaternion(
+             new_rotation.as_quat(scalar_first=True)
+        )
 
         # command to controller
         cmd = cc.Command(
@@ -108,7 +114,6 @@ class ur5(MujocoEnv):
         for i in range(self.frame_skip):
             dq = self.cartesian_controller.cartesian_command(q_current, cmd)
             dq = np.clip(dq, -self.act_rng, self.act_rng)
-
             self.do_simulation(dq, 1)
 
         if self.render_mode == "human":
@@ -166,6 +171,9 @@ class ur5(MujocoEnv):
     def reset_model(self):
         qpos = self.init_qpos.copy()
         qvel = self.init_qvel.copy()
+
+        # from the sim
+        qpos[0:6] = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
 
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 

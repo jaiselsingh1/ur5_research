@@ -35,9 +35,10 @@ class CartesianController(object):
         self.model = mj_model
         self.data = mj_data
 
-        self.jacp = np.zeros(3, self.model.nv)
-        self.jacr = np.zeros(3, self.model.nv)
-        self.ee_body = self.model.body("ee_finger")
+        self.jacp = np.zeros((3, self.model.nv))
+        self.jacr = np.zeros((3, self.model.nv))
+        self.ee_body = self.data.body("ee_finger")
+       
         # Create kinematics object for robot urdf:
         # self.kinematics = kinematics
 
@@ -84,49 +85,39 @@ class CartesianController(object):
         Input: desired end effector position and current joint values.
         Output: joint velocities to reach desired end effector position"""
 
-        # Perform forward kinematics to obtain current end effector pose:
-        joint_transforms, b_T_ee = 
-        # b_T_ee is different compared to ROS setup when loading mjcf/xml file (as opposed to urdf file where error doesnt occur) in that some 0's have sign flipped. This propagates down to an actually different dq, which is a problem!
-        mj.mj_setState(self.model, self.data, q_current, mj.mjtState.mjSTATE_QPOS)
-        mj.mj_forward(mj.model, mj.data)
-        mj.mj_jacBody(mj.model, mj.data, self.jacp, self.jacr, self.ee_body.id)
+        # mj.mj_setState(self.model, self.data, q_current, mj.mjtState.mjSTATE_QPOS)
+        # mj.mj_forward(mj.model, mj.data)
+        mj.mj_jacBody(self.model, self.data, self.jacp, self.jacr, self.ee_body.id)
 
-        # transformation matrix from end effector to world
-        world_from_ee = homogenous_matrix()
-        # give values from self.body (xpos, xquat) for ee finger
+        xquat = self.ee_body.xquat.copy()
+        xpos = self.ee_body.xpos.copy()
+        
+        target_xpos = np.array([x_command.trans_x, x_command.trans_y, x_command.trans_z])
+        target_xquat = np.array([x_command.rot_x, x_command.rot_y, x_command.rot_z, x_command.rot_w])
 
-        # get a world from ee_desired from the command 
+        R_current = Rotation.from_quat(xquat, scalar_first=True)
+        # mujoco does w, x, y, z
+        R_desired = Rotation.from_quat(target_xquat)
 
+        R_diff = R_desired * R_current.inv()
+        # diff in rot 
+        rvec = Rotation.as_rotvec(R_diff) 
+        rvec /= self.model.opt.timestep
 
-        # Obtain end effector pose delta to move towards command:
-        # c_T_des = np.dot(tf.transformations.inverse_matrix(b_T_ee), b_T_des)
-        """ printk("inv(b_T_ee)*\n", np.linalg.inv(b_T_ee).round(4)) """
-        ee_T_des = np.dot(
-            np.linalg.inv(b_T_ee), b_T_des
-        )  # THIS IS DIFFERENT FROM tf.transformations.inverse_matrix(b_T_ee) in that some 0's have different signs
-        """ printk("c_T_des* \n", ee_T_des.round(4)) """
-        # ee_T_des[np.abs(ee_T_des) < 1e-9] = 0.0
-        """ printk("c_T_des after* \n", ee_T_des.round(4)) """
+        jac = np.concatenate([self.jacp[:, :6], self.jacr[:, :6]])
+        jac_pinv = np.linalg.pinv(jac, 1e-4)
 
-        # Get desired translational velocity in local frame
-        """ dx_e = np.zeros(3)
-        dx_e[0] = c_T_des[0][3]
-        dx_e[1] = c_T_des[1][3]
-        dx_e[2] = c_T_des[2][3] """
-        dx_e = ee_T_des[:3, 3]
-        """ printk("dx_e 1\n", dx_e.round(4)) """
+        # convert difference in postions/rot into target vels 
+        x_diff = target_xpos - xpos 
+        dx_des = (x_diff / self.model.opt.timestep)
 
-        dx_e *= self.trans_gain
+        xdot_des = np.concatenate([dx_des, rvec])
 
-        Jps = np.linalg.pinv(J, 1.0e-2)
-        """ printk("J pseudo inverse \n", Jps.round(4), Jps.shape) """
-        dq = np.dot(Jps, dv_e)
-        # dq[-3:] = 0.0  # TODO: deactivate this when it works as it should
-        printk("dq", np.round(dq, 4), dq.shape)
+        qvel = jac_pinv @ xdot_des
 
-        # exit()
+ 
+        return qvel
 
-        return dq  # Return commanded joint velocities
-
+        
     def set_desired_ee_pos(self, x_command: Command):
         self.desired_ee_pos = x_command
