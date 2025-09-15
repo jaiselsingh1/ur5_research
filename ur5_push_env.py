@@ -38,12 +38,13 @@ class ur5(MujocoEnv):
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
 
         # scaling 
-        self.max_delta_pos = 0.1 # meters per step 
-        self.max_delta_rot = 0.05    # radians per step
+        self.max_delta_pos = 0.01 # meters per step 
+        self.max_delta_rot = 0.01    # radians per step
 
         # targets
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
+        self.target_position = np.array([0.7, 0.2, -0.1175])
 
         # controller randomly sets state to discontinuous position/time 
         # you can't set the state of the word how the controller does it 
@@ -123,7 +124,7 @@ class ur5(MujocoEnv):
         reward = self.get_reward()
 
         tape_roll_xpos = self.data.body("tape_roll").xpos
-        target_position = np.array([0.7, 0.2, -0.1175])
+        target_position = self.target_position
         object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
 
         terminated = object_to_target_error < 0.05 # within 5 cm 
@@ -144,8 +145,7 @@ class ur5(MujocoEnv):
 
         ee_to_object = tape_roll_pos - ee_pos
         object_to_target = target_pos - tape_roll_pos
-        # ee_object_distance = np.linalg.norm(ee_to_object)
-        # object_target_distance = np.linalg.norm(object_to_target)
+
         ee_vel = self.data.body("ee_finger").cvel[:3]
 
 
@@ -159,8 +159,6 @@ class ur5(MujocoEnv):
                 target_pos,
                 ee_to_object,
                 object_to_target,
-                # [ee_object_distance],
-                # [object_target_distance],
                 ee_vel * 0.1,
                 self.ee_target_pos,
                 self.ee_target_quat,   
@@ -189,6 +187,10 @@ class ur5(MujocoEnv):
         
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
         
-        reward = -10.0 * ee_to_object
+        reward = -1.0 * ee_to_object
+
+        obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
+        
+        reward += -10.0 * obj_to_target
         
         return reward

@@ -48,9 +48,9 @@ def main():
             "env_id": "UR5-v1",
             "algorithm": "PPO",
             "n_steps": 2048,
-            "total_timesteps": 100_000,
+            "total_timesteps": 2_000_000,
             "num_cpu": 4,
-            "log_std_init": -1.50, 
+            "log_std_init": -0.92, 
         }, 
         sync_tensorboard=True 
     )
@@ -66,12 +66,12 @@ def main():
         # ent_coef=0.01, 
         learning_rate=1e-4,
         batch_size=64, 
-        n_epochs=5, # do not want to overfit the very small set of data that I am using 
+        n_epochs=10, # do not want to overfit the very small set of data that I am using 
         n_steps=2048, # how many timesteps do you need to do within the environment for "right behavior" to do policy update
         verbose=1,
         tensorboard_log="tensorboard_log", 
         policy_kwargs=dict(
-            log_std_init=-2.0, 
+            log_std_init=-0.92, 
         )
     )
     # stochastic policy hence you need to have a std parameter 
@@ -99,16 +99,17 @@ def main():
         )
     ])
 
-    model.learn(total_timesteps=100_000, callback=callbacks) #callback=WandbCallback(verbose=2))
+    model.learn(total_timesteps=2_000_000, callback=callbacks) #callback=WandbCallback(verbose=2))
+    model.save("./trained_models.pt")
 
     eval_env_human = DummyVecEnv([lambda: gym.make(env_id, render_mode="human")])
 
-    obs = eval_env_human.reset()
-    for _ in range(1000):
-        action, _ = model.predict(obs)
-        obs, rewards, dones, info = eval_env_human.step(action)
-        # eval_env_human.render()
-
+    for _ in range(10):
+        obs = eval_env_human.reset()
+        for _ in range(1000):
+            action, _ = model.predict(obs)
+            obs, rewards, dones, info = eval_env_human.step(action)
+            # eval_env_human.render()
     wandb.finish()
 
 

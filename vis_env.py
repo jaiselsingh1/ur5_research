@@ -10,9 +10,9 @@ while True:
     i += 1
 
     action = np.zeros(6)
-    action[5] = 0.05
+    action[3] = 0.1
     if i % 200 == 0:
-        # env.reset()
+        env.reset()
 
         print("\n \n \n")
 
