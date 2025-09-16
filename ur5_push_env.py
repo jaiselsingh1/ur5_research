@@ -165,18 +165,61 @@ class ur5(MujocoEnv):
             ]
         )
         return obs.astype(np.float32)
+    
+    def reset_random_pose(self, max_iters=100, tol=1e-3):
+        qpos = self.init_qpos.copy()
+
+        # calculated based on the xml 
+        target_pos = np.array([np.random.uniform(0.25, 0.75),  # within table X
+                               np.random.uniform(-0.55, 0.55), # within table Y
+                               -0.05                           # 10 cm above surface
+        ])
+
+        target_quat = np.array([0, 0, 0, 1]) # xyzw 
+        # safe start based on XML
+        q_guess = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+
+        for _ in range(max_iters):
+            self.data.qpos[:6] = q_guess
+            mujoco.mj_forward(self.model, self.data)
+
+            ee_pos = self.ee_finger.xpos.copy()
+            ee_quat = self.ee_finger.xquat.copy()
+            pos_err = target_pos - ee_pos
+
+            # orientation error
+            curr_rot = Rotation.from_quat([ee_quat[1], ee_quat[2], ee_quat[3], ee_quat[0]])
+            des_rot = Rotation.from_quat(target_quat)
+            rvec = (des_rot * curr_rot.inv()).as_rotvec()
+
+            err = np.concatenate([pos_err, rvec])
+            if np.linalg.norm(err) < tol:
+                break
+
+            # compute Jacobian
+            Jp = np.zeros((3, self.model.nv))
+            Jr = np.zeros((3, self.model.nv))
+            mujoco.mj_jacBody(self.model, self.data, Jp, Jr, self.ee_finger.id)
+            J = np.vstack([Jp[:, :6], Jr[:, :6]])
+
+            # damped least squares
+            JT = J.T
+            dq = JT @ np.linalg.solve(J @ JT + 1e-3 * np.eye(6), err)
+            q_guess[:6] += dq
+
+        return q_guess[:6]
 
     def reset_model(self):
         qpos = self.init_qpos.copy()
         qvel = self.init_qvel.copy()
 
         # from the sim
-        base_pose= np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+        #base_pose= np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         # add gaussian noise 
-        noise_std = 0.2 
-        joint_noise = np.random.normal(0, noise_std, 6)
-        qpos[0:6] = base_pose + joint_noise
+        # noise_std = 0.2 
+        # joint_noise = np.random.normal(0, noise_std, 6)
 
+        qpos[0:6] = self.reset_random_pose()
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 
         self.set_state(qpos, qvel)

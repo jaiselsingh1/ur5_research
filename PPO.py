@@ -25,6 +25,7 @@ class PPOConfig(typing.NamedTuple):
     batch_size: int = 64
     n_epochs: int = 10
     total_timesteps: int = 2_000_000
+    net_arch: dict = dict(pi=[128, 128], vf=[128, 128])
     
     # Policy settings
     log_std_init: float = -0.92
@@ -82,6 +83,7 @@ def create_model(config: PPOConfig, vec_env):
         tensorboard_log=config.tensorboard_log,
         policy_kwargs=dict(
             log_std_init=config.log_std_init,
+            net_arch=config.net_arch
         )
     )
     # stochastic policy hence you need to have a std parameter
@@ -119,7 +121,6 @@ def evaluate_model(model, config: PPOConfig):
         for _ in range(config.eval_max_steps):
             action, _ = model.predict(obs)
             obs, rewards, dones, info = eval_env_human.step(action)
-            # eval_env_human.render()
 
 def main():
     config = PPOConfig()
@@ -138,10 +139,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
 
 
