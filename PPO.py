@@ -28,7 +28,7 @@ class PPOConfig(typing.NamedTuple):
     net_arch: dict = dict(pi=[128, 128], vf=[128, 128])
     
     # Policy settings
-    log_std_init: float = -0.92
+    log_std_init: float = -1.3
     
     # Evaluation settings
     eval_freq: int = 10_000
@@ -44,7 +44,7 @@ class PPOConfig(typing.NamedTuple):
     
     # Evaluation settings
     eval_episodes: int = 10
-    eval_max_steps: int = 1000
+    eval_max_steps: int = 500
 
 def create_ur5_env():
     return gym.make("UR5-v1")

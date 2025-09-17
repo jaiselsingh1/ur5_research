@@ -38,8 +38,8 @@ class ur5(MujocoEnv):
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
 
         # scaling 
-        self.max_delta_pos = 0.01 # meters per step 
-        self.max_delta_rot = 0.01    # radians per step
+        self.max_delta_pos = 0.02 # meters per step 
+        self.max_delta_rot = 0.02    # radians per step
 
         # targets
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
@@ -89,7 +89,6 @@ class ur5(MujocoEnv):
         
         # Create rotation from current quaternion
         current_rotation = Rotation.from_quat(self.ee_finger.xquat.copy(), scalar_first=True)
-        
         # Compose rotations
         new_rotation = current_rotation * delta_rotation
         
@@ -127,8 +126,10 @@ class ur5(MujocoEnv):
         target_position = self.target_position
         object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
 
-        terminated = object_to_target_error < 0.05 # within 5 cm 
-        truncated = False
+        terminated = object_to_target_error < 0.03 # within 3 cm 
+        truncated = np.linalg.norm(self.ee_finger.xpos - tape_roll_xpos) > 0.8
+        if truncated:
+            reward -= 100
 
         return obs, reward, terminated, truncated, {}
 
@@ -166,48 +167,30 @@ class ur5(MujocoEnv):
         )
         return obs.astype(np.float32)
     
-    def reset_random_pose(self, max_iters=100, tol=1e-3):
+    def reset_random_pose(self, max_iters=1000, tol=1e-5):
         qpos = self.init_qpos.copy()
 
         # calculated based on the xml 
-        target_pos = np.array([np.random.uniform(0.25, 0.75),  # within table X
-                               np.random.uniform(-0.55, 0.55), # within table Y
-                               -0.05                           # 10 cm above surface
-        ])
+        target_pos = np.array([np.random.uniform(0.202, 0.802),  # within table X
+                      np.random.uniform(-0.6, 0.6),     # within table Y  
+                      np.random.uniform(-0.1475, -0.05) # above surface
+                      ])
 
-        target_quat = np.array([0, 0, 0, 1]) # xyzw 
+        target_quat = np.array([1, 0, 0.0, 0]) # xyzw 
         # safe start based on XML
-        q_guess = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
-
+        qpos[:6] = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+        self.set_state(qpos, self.data.qvel)
+        # mujoco.mj_setState(self.model, self.data, qpos, mujoco.mjtState.mjSTATE_QPOS) # this doesnt call forward hence quat = 0 norm 
+        
         for _ in range(max_iters):
-            self.data.qpos[:6] = q_guess
-            mujoco.mj_forward(self.model, self.data)
+            x_command = cc.Command(*target_pos, *target_quat) # takes an iterable and passes it as arguments in the order
+            qvel = np.clip(self.cartesian_controller.cartesian_command(self.data.qpos, x_command), -3.15, 3.15)
+            self.do_simulation(qvel, 1) # the controller is a velocity controller so you can just pass in qvel
 
-            ee_pos = self.ee_finger.xpos.copy()
-            ee_quat = self.ee_finger.xquat.copy()
-            pos_err = target_pos - ee_pos
+            error = np.linalg.norm(self.ee_finger.xpos - target_pos)
+            if error < tol:
+                break 
 
-            # orientation error
-            curr_rot = Rotation.from_quat([ee_quat[1], ee_quat[2], ee_quat[3], ee_quat[0]])
-            des_rot = Rotation.from_quat(target_quat)
-            rvec = (des_rot * curr_rot.inv()).as_rotvec()
-
-            err = np.concatenate([pos_err, rvec])
-            if np.linalg.norm(err) < tol:
-                break
-
-            # compute Jacobian
-            Jp = np.zeros((3, self.model.nv))
-            Jr = np.zeros((3, self.model.nv))
-            mujoco.mj_jacBody(self.model, self.data, Jp, Jr, self.ee_finger.id)
-            J = np.vstack([Jp[:, :6], Jr[:, :6]])
-
-            # damped least squares
-            JT = J.T
-            dq = JT @ np.linalg.solve(J @ JT + 1e-3 * np.eye(6), err)
-            q_guess[:6] += dq
-
-        return q_guess[:6]
 
     def reset_model(self):
         qpos = self.init_qpos.copy()
@@ -219,10 +202,10 @@ class ur5(MujocoEnv):
         # noise_std = 0.2 
         # joint_noise = np.random.normal(0, noise_std, 6)
 
-        qpos[0:6] = self.reset_random_pose()
+        self.reset_random_pose()
+        
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
 
-        self.set_state(qpos, qvel)
         self.ee_target_pos = self.ee_finger.xpos.copy()
         self.ee_target_quat = self.ee_finger.xquat.copy()
 
@@ -238,6 +221,9 @@ class ur5(MujocoEnv):
 
         obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
         
-        reward += -5.0 * obj_to_target
+        reward += -10.0 * obj_to_target
+        
+        if obj_to_target < 0.05:
+            reward += 50
         
         return reward

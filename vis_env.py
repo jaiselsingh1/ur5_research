@@ -10,7 +10,7 @@ while True:
     i += 1
 
     action = np.zeros(6)
-    action[3] = 0.1
+    action[4] = 1.0
     if i % 200 == 0:
         env.reset()
 
