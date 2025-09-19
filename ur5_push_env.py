@@ -22,7 +22,7 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(41,), dtype=np.float32),
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(34,), dtype=np.float32), 
             **kwargs,
         )
 
@@ -51,6 +51,7 @@ class ur5(MujocoEnv):
         # black box analogy where only policy can impact the environment since the policy is the thing that does commands based on controller which is black box
         # data_copy = copy.deepcopy(self.data)
         self.cartesian_controller = cc.CartesianController(self.model, self.data)
+        self.tape_roll = self.data.body("tape_roll")
         self.ee_finger = self.data.body("ee_finger")
 
         # Set a fixed downward-pointing orientation
@@ -126,7 +127,7 @@ class ur5(MujocoEnv):
         target_position = self.target_position
         object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
 
-        terminated = object_to_target_error < 0.03 # within 3 cm 
+        terminated = object_to_target_error < 0.05 # within 5 cm 
         truncated = np.linalg.norm(self.ee_finger.xpos - tape_roll_xpos) > 0.8
         if truncated:
             reward -= 100
@@ -135,67 +136,94 @@ class ur5(MujocoEnv):
 
         
     def _get_obs(self):
-        qpos = self.data.qpos[:6]
-        qvel = self.data.qvel[:6]
+        qpos_ur5 = self.data.qpos[:6]
+        qvel_ur5 = self.data.qvel[:6]
 
         # in your observation you want .xpos and no .copy() since you want it at that specific state vs controllers
         ee_pos = self.data.body("ee_finger").xpos
         ee_quat = self.ee_finger.xquat
         tape_roll_pos = self.data.body("tape_roll").xpos
-        target_pos = np.array([0.7, 0.2, -0.1175])
+        # possibly add tape roll orientation
 
         ee_to_object = tape_roll_pos - ee_pos
-        object_to_target = target_pos - tape_roll_pos
+        object_to_target = self.target_position - tape_roll_pos
 
-        ee_vel = self.data.body("ee_finger").cvel[:3]
+        ee_vel = self.ee_finger.cvel[:3]
 
 
         obs = np.concatenate(
             [
-                qpos,
-                qvel * 0.1,
+                qpos_ur5,
+                qvel_ur5 * 0.1,
                 ee_pos,
                 ee_quat,
                 tape_roll_pos,
-                target_pos,
+                self.target_position,
                 ee_to_object,
                 object_to_target,
                 ee_vel * 0.1,
-                self.ee_target_pos,
-                self.ee_target_quat,   
             ]
         )
         return obs.astype(np.float32)
+    
+    def contact_detection(self):
+        for i in range(self.data.ncon):
+            contact = self.data.contact[i]
+            geom1 = contact.geom1
+            geom2 = contact.geom2
+            # print(mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom1), mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom2))
+
+            body1 = self.model.geom_bodyid[geom1]
+            body2 = self.model.geom_bodyid[geom2]
+
+            if body1 != self.tape_roll.id or body2 != self.tape_roll.id:
+                # print(mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_BODY, body1), mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_BODY, body2))
+                return False  
+        return True
+
     
     def reset_random_pose(self, max_iters=1000, tol=1e-5):
         qpos = self.init_qpos.copy()
 
         # calculated based on the xml 
-        target_pos = np.array([np.random.uniform(0.202, 0.802),  # within table X
-                      np.random.uniform(-0.6, 0.6),     # within table Y  
+        # target_pos = np.array([np.random.uniform(0.202, 0.802),  # within table X
+        #               np.random.uniform(-0.6, 0.6),     # within table Y  
+        #               np.random.uniform(-0.1475, -0.05) # above surface
+        #               ])
+
+        target_pos = np.array([np.random.uniform(0.3, 0.6),  # within table X
+                      np.random.uniform(-0.1, 0.5),     # within table Y  
                       np.random.uniform(-0.1475, -0.05) # above surface
                       ])
-
-        target_quat = np.array([1, 0, 0.0, 0]) # xyzw 
-        # safe start based on XML
-        qpos[:6] = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
-        self.set_state(qpos, self.data.qvel)
-        # mujoco.mj_setState(self.model, self.data, qpos, mujoco.mjtState.mjSTATE_QPOS) # this doesnt call forward hence quat = 0 norm 
         
-        for _ in range(max_iters):
-            x_command = cc.Command(*target_pos, *target_quat) # takes an iterable and passes it as arguments in the order
-            qvel = np.clip(self.cartesian_controller.cartesian_command(self.data.qpos, x_command), -3.15, 3.15)
-            self.do_simulation(qvel, 1) # the controller is a velocity controller so you can just pass in qvel
+        # np.array([1, 0, 0.0, 0]) # xyzw 
+        # safe start based on XML
+        qpos_1 = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
+        qpos_2 = np.array([-0.754, -0.628, 1.95, 0, 0.0232, 0])
 
-            error = np.linalg.norm(self.ee_finger.xpos - target_pos)
-            if error < tol:
-                break 
+        if np.random.random() < 0.3 and False:
+            qpos[:6] = qpos_2   
+            self.set_state(qpos, self.data.qvel)
 
+        else:
+            qpos[:6] = qpos_1
+            self.set_state(qpos, self.data.qvel)
+            target_quat = self.ee_finger.xquat.copy()
+            # mujoco.mj_setState(self.model, self.data, qpos, mujoco.mjtState.mjSTATE_QPOS) # this doesnt call forward hence quat = 0 norm 
+
+            for _ in range(max_iters):
+                x_command = cc.Command(*target_pos, *target_quat) # takes an iterable and passes it as arguments in the order
+                qvel = np.clip(self.cartesian_controller.cartesian_command(self.data.qpos, x_command), -3.15, 3.15)
+                self.do_simulation(qvel, 1) # the controller is a velocity controller so you can just pass in qvel
+
+                error = np.linalg.norm(self.ee_finger.xpos - target_pos)
+                if error < tol:
+                    break 
+
+            # print(error)
+        # print(self.ee_finger.xquat)
 
     def reset_model(self):
-        qpos = self.init_qpos.copy()
-        qvel = self.init_qvel.copy()
-
         # from the sim
         #base_pose= np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         # add gaussian noise 
@@ -203,8 +231,18 @@ class ur5(MujocoEnv):
         # joint_noise = np.random.normal(0, noise_std, 6)
 
         self.reset_random_pose()
-        
+        qpos = self.data.qpos.copy()
+
         qpos[9:13] = np.array([1.0, 0.0, 0.0, 0.0])  # reset object upright
+        
+        # randomizing the tape roll position
+        new_qpos = np.random.randn(2) * 0.05 + qpos[6:8] 
+        qpos[6:8] = new_qpos
+
+        self.set_state(qpos, self.data.qvel)
+
+        if self.contact_detection():
+            self.reset_model()
 
         self.ee_target_pos = self.ee_finger.xpos.copy()
         self.ee_target_quat = self.ee_finger.xquat.copy()
@@ -217,13 +255,13 @@ class ur5(MujocoEnv):
         
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
         
-        reward = -1.0 * ee_to_object
+        reward = -0.1 * ee_to_object**2
 
         obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
         
-        reward += -10.0 * obj_to_target
+        reward += -1.0 * obj_to_target**2
         
         if obj_to_target < 0.05:
-            reward += 50
+            reward += 500
         
         return reward

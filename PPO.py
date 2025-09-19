@@ -28,7 +28,7 @@ class PPOConfig(typing.NamedTuple):
     net_arch: dict = dict(pi=[128, 128], vf=[128, 128])
     
     # Policy settings
-    log_std_init: float = -1.3
+    log_std_init: float = -0.7
     
     # Evaluation settings
     eval_freq: int = 10_000
