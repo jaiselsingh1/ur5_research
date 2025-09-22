@@ -150,7 +150,6 @@ class ur5(MujocoEnv):
 
         ee_vel = self.ee_finger.cvel[:3]
 
-
         obs = np.concatenate(
             [
                 qpos_ur5,
@@ -167,21 +166,23 @@ class ur5(MujocoEnv):
         return obs.astype(np.float32)
     
     def contact_detection(self):
+        tape_id = self.tape_roll.id
+
+        table_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "table")
+        allowed_geoms = {table_geom_id}
+
         for i in range(self.data.ncon):
-            contact = self.data.contact[i]
-            geom1 = contact.geom1
-            geom2 = contact.geom2
-            # print(mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom1), mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom2))
+            c = self.data.contact[i]
+            g1, g2 = c.geom1, c.geom2
 
-            body1 = self.model.geom_bodyid[geom1]
-            body2 = self.model.geom_bodyid[geom2]
+            # If tape roll touches something other than the allowed geom(s)
+            if (self.model.geom_bodyid[g1] == tape_id and g2 not in allowed_geoms) \
+            or (self.model.geom_bodyid[g2] == tape_id and g1 not in allowed_geoms):
+                return True
+            
+        return False
 
-            if body1 != self.tape_roll.id or body2 != self.tape_roll.id:
-                # print(mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_BODY, body1), mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_BODY, body2))
-                return False  
-        return True
 
-    
     def reset_random_pose(self, max_iters=1000, tol=1e-5):
         qpos = self.init_qpos.copy()
 
@@ -201,7 +202,7 @@ class ur5(MujocoEnv):
         qpos_1 = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         qpos_2 = np.array([-0.754, -0.628, 1.95, 0, 0.0232, 0])
 
-        if np.random.random() < 0.3 and False:
+        if np.random.random() < 0.3:  
             qpos[:6] = qpos_2   
             self.set_state(qpos, self.data.qvel)
 
@@ -248,6 +249,7 @@ class ur5(MujocoEnv):
         self.ee_target_quat = self.ee_finger.xquat.copy()
 
         return self._get_obs()
+    
 
     def get_reward(self):
         tape_roll_xpos = self.data.body("tape_roll").xpos

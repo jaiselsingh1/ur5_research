@@ -3,18 +3,19 @@ import ur5_push_env
 env = ur5_push_env.ur5(render_mode="human")
 import numpy as np
 import cartesian_controller as cc 
-observation, info = env.reset()
+from sbx import PPO
+obs, info = env.reset()
 
 
 i = 0 
 observations = []
+policy = PPO.load("./trained_models.zip")
 for i in range(1000):
     # i += 1
     action = env.action_space.sample()
-    action = np.zeros_like(action)
+    action = policy.predict(obs)
     if i % 50 == 0:
         env.reset()
-
         print("\n ")
         # target_pos = np.array([np.random.uniform(0.3, 0.6),  # within table X
         #               np.random.uniform(-0.1, 0.5),     # within table Y  
@@ -36,10 +37,5 @@ for i in range(1000):
         # print(env.ee_finger.xquat)
 
     obs, _, _, _, _= env.step(action)
-
     #observations.append(obs)
     env.render()
-    # time.sleep(0.1)
-# all_obs = np.stack(observations)
-# print(all_obs.mean(axis=0))
-# print(all_obs.std(axis=0))
