@@ -27,11 +27,11 @@ class PPOConfig(typing.NamedTuple):
     
     # PPO hyperparameters
     learning_rate: float = 1e-4
-    n_steps: int = 2048
+    n_steps: int = 4096
     batch_size: int = 128
-    n_epochs: int = 15
-    total_timesteps: int = 5_000_000
-    net_arch: dict = dict(pi=[128, 128], vf=[128, 128])
+    n_epochs: int = 10
+    total_timesteps: int = 20_000_000
+    net_arch: dict = dict(pi=[128, 128], vf=[256, 256])
     
     # Policy settings
     log_std_init: float = -1.0
@@ -43,7 +43,7 @@ class PPOConfig(typing.NamedTuple):
     tensorboard_log: str = "tensorboard_log"
     save_path: str = "./logs/"
     model_save_path: str = "./trained_models"
-    norm_path: str = "./vecnormalize.pkl"   # <--- added path for saving normalization stats
+    # norm_path: str = "./vecnormalize.pkl"   
     
     # Wandb settings
     wandb_project: str = "ur5-ppo-training"
@@ -106,14 +106,14 @@ def create_model(config: PPOConfig, vec_env):
 def create_callbacks(config: PPOConfig):
     """Create evaluation and wandb callbacks"""
     eval_env = DummyVecEnv([lambda: Monitor(gym.make(config.env_id))])
-    eval_env = VecNormalize(
-        eval_env,
-        norm_obs=True,
-        norm_reward=True,
-        clip_obs=10.0,
-        gamma=0.99,
-        training=False  #  do not update stats during evaluation
-    )
+    # eval_env = VecNormalize(
+    #     eval_env,
+    #     norm_obs=True,
+    #     norm_reward=True,
+    #     clip_obs=10.0,
+    #     gamma=0.99,
+    #     training=False  #  do not update stats during evaluation
+    # )
     
     eval_callback = EvalCallback(
         eval_env,
@@ -139,9 +139,9 @@ def evaluate_model(model, config: PPOConfig):
     eval_env_human = DummyVecEnv([lambda: gym.make(config.env_id, render_mode="human")])
 
     # load normalization stats so evaluation matches training
-    eval_env_human = VecNormalize.load(config.norm_path, eval_env_human)
-    eval_env_human.training = False         # do not update stats
-    eval_env_human.norm_reward = False      # keep rewards unnormalized (human interpretable)
+    # eval_env_human = VecNormalize.load(config.norm_path, eval_env_human)
+    # eval_env_human.training = False         # do not update stats
+    # eval_env_human.norm_reward = False      # keep rewards unnormalized (human interpretable)
     
     for _ in range(config.eval_episodes):
         obs = eval_env_human.reset()
@@ -157,7 +157,7 @@ def main():
     
     # Create vectorized environment
     vec_env = SubprocVecEnv([make_env(config.env_id, i) for i in range(config.num_cpu)])
-    vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True, clip_obs=10.0, gamma=0.99)
+    # vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True, clip_obs=10.0, gamma=0.99)
 
     model = create_model(config, vec_env)
     callbacks = create_callbacks(config)
@@ -167,7 +167,7 @@ def main():
 
     # Save model + normalization stats
     model.save(config.model_save_path)
-    vec_env.save(config.norm_path)
+    # vec_env.save(config.norm_path)
 
     # Evaluate model
     evaluate_model(model, config)

@@ -110,9 +110,9 @@ class ur5(MujocoEnv):
             rot_w=float(self.ee_target_quat[0]),
         )
 
-        q_current = self.data.qpos[:6].copy()
 
         for i in range(self.frame_skip):
+            q_current = self.data.qpos[:6].copy()
             dq = self.cartesian_controller.cartesian_command(q_current, cmd)
             dq = np.clip(dq, -self.act_rng, self.act_rng)
             self.do_simulation(dq, 1)
@@ -165,19 +165,17 @@ class ur5(MujocoEnv):
         )
         return obs.astype(np.float32)
     
-    def contact_detection(self):
+    def tape_roll_cont(self, geom: str):
         tape_id = self.tape_roll.id
-
-        table_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "table")
-        allowed_geoms = {table_geom_id}
-
+        geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom)
+    
         for i in range(self.data.ncon):
             c = self.data.contact[i]
             g1, g2 = c.geom1, c.geom2
 
             # If tape roll touches something other than the allowed geom(s)
-            if (self.model.geom_bodyid[g1] == tape_id and g2 not in allowed_geoms) \
-            or (self.model.geom_bodyid[g2] == tape_id and g1 not in allowed_geoms):
+            if (self.model.geom_bodyid[g1] == tape_id and g2 == geom_id) \
+            or (self.model.geom_bodyid[g2] == tape_id and g1 == geom_id):
                 return True
             
         return False
@@ -242,7 +240,7 @@ class ur5(MujocoEnv):
 
         self.set_state(qpos, self.data.qvel)
 
-        if self.contact_detection():
+        if not self.tape_roll_cont("table"):
             self.reset_model()
 
         self.ee_target_pos = self.ee_finger.xpos.copy()
@@ -265,5 +263,9 @@ class ur5(MujocoEnv):
         
         if obj_to_target < 0.05:
             reward += 500
+
+        if self.tape_roll_cont("cylinder"):
+            reward += 1.0
+
         
         return reward
