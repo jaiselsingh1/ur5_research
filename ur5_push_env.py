@@ -22,7 +22,7 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(34,), dtype=np.float32), 
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(37,), dtype=np.float32),  # 3 more for cvel of tape roll 
             **kwargs,
         )
 
@@ -45,6 +45,7 @@ class ur5(MujocoEnv):
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
         self.target_position = np.array([0.7, 0.2, -0.1175])
+        self.prev_tape_roll_pos = None
 
         # controller randomly sets state to discontinuous position/time 
         # you can't set the state of the word how the controller does it 
@@ -149,6 +150,7 @@ class ur5(MujocoEnv):
         object_to_target = self.target_position - tape_roll_pos
 
         ee_vel = self.ee_finger.cvel[:3]
+        tape_roll_vel = self.data.body("tape_roll").cvel[:3]
 
         obs = np.concatenate(
             [
@@ -161,6 +163,7 @@ class ur5(MujocoEnv):
                 ee_to_object,
                 object_to_target,
                 ee_vel * 0.1,
+                tape_roll_vel 
             ]
         )
         return obs.astype(np.float32)
@@ -246,26 +249,37 @@ class ur5(MujocoEnv):
         self.ee_target_pos = self.ee_finger.xpos.copy()
         self.ee_target_quat = self.ee_finger.xquat.copy()
 
+        # reset prev tape roll position for reward shaping
+        self.prev_tape_roll_pos = self.data.body("tape_roll").xpos.copy()
+
         return self._get_obs()
     
 
     def get_reward(self):
         tape_roll_xpos = self.data.body("tape_roll").xpos
         ee_finger_xpos = self.data.body("ee_finger").xpos
-        
+
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-        
         reward = -0.1 * ee_to_object**2
 
         obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
-        
         reward += -1.0 * obj_to_target**2
-        
+
+        if hasattr(self, "prev_tape_roll_pos"):
+            prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
+            progress = prev_dist - obj_to_target  # positive if object moved closer
+            reward += 50.0 * progress
+        self.prev_tape_roll_pos = tape_roll_xpos.copy()
+
+        if self.tape_roll_cont("ee_finger"):
+            reward += 10.0
+
         if obj_to_target < 0.05:
             reward += 500
 
-        if self.tape_roll_cont("cylinder"):
-            reward += 1.0
+        obj_vel = self.data.body("tape_roll").cvel[3:]  # linear velocity
+        target_dir = (self.target_position - tape_roll_xpos)
+        target_dir /= (np.linalg.norm(target_dir) + 1e-8)  # normalization 
+        reward += 10.0 * np.dot(obj_vel, target_dir)  # positive if moving toward goal
 
-        
         return reward

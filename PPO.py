@@ -30,7 +30,7 @@ class PPOConfig(typing.NamedTuple):
     n_steps: int = 4096
     batch_size: int = 128
     n_epochs: int = 10
-    total_timesteps: int = 20_000_000
+    total_timesteps: int = 5_000_000
     net_arch: dict = dict(pi=[128, 128], vf=[256, 256])
     
     # Policy settings
@@ -71,7 +71,7 @@ def make_env(env_id: str, rank: int, seed: int = 0):
 def setup_wandb(config: PPOConfig):
     """Initialize wandb with config parameters"""
     wandb_config = config._asdict()
-    wandb_config["algorithm"] = "PPO"  # Add algorithm info
+    wandb_config["algorithm"] = "PPO"  
     
     return wandb.init(
         project=config.wandb_project,

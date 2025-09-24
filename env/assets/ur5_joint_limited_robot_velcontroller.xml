@@ -64,7 +64,7 @@
                   <body name="ee_link" pos="0 0.0823 0" quat="0.7071067812 0 0 0.7071067812">
                     <geom size="0.005 0.005 0.005" pos="-0.01 0 0" type="box" rgba="1 0 0 1"/>
                     <body name="ee_finger" euler="0 1.5707963268 0">
-                      <geom type="cylinder" size="0.014 0.0755"  rgba="1.0 0.6 0.12 1.0" pos="0 0 0.0755"/>
+                      <geom name="ee_finger" type="cylinder" size="0.014 0.0755"  rgba="1.0 0.6 0.12 1.0" pos="0 0 0.0755"/>
                       <inertial pos="0 0 0" mass="0.300" diaginertia="0.0005854 0.0005854 0.000029431"/>
                     </body>
                   </body>
