@@ -1552,6 +1552,7 @@ dependencies = [
     { name = "scipy" },
     { name = "stable-baselines3" },
     { name = "tensorboard" },
+    { name = "torch" },
     { name = "tqdm" },
     { name = "wandb" },
 ]
@@ -1574,6 +1575,7 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.16.1" },
     { name = "stable-baselines3", specifier = ">=2.7.0" },
     { name = "tensorboard", specifier = ">=2.20.0" },
+    { name = "torch", specifier = ">=2.8.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
     { name = "wandb", specifier = ">=0.21.3" },
 ]
