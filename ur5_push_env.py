@@ -149,8 +149,8 @@ class ur5(MujocoEnv):
         ee_to_object = tape_roll_pos - ee_pos
         object_to_target = self.target_position - tape_roll_pos
 
-        ee_vel = self.ee_finger.cvel[:3]
-        tape_roll_vel = self.data.body("tape_roll").cvel[:3]
+        ee_vel = self.ee_finger.cvel[3:]
+        tape_roll_vel = self.data.body("tape_roll").cvel[3:]
 
         obs = np.concatenate(
             [
