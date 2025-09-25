@@ -30,7 +30,7 @@ class PPOConfig(typing.NamedTuple):
     n_steps: int = 4096
     batch_size: int = 128
     n_epochs: int = 10
-    total_timesteps: int = 5_000_000
+    total_timesteps: int = 20_000_000
     net_arch: dict = dict(pi=[128, 128], vf=[256, 256])
     
     # Policy settings
@@ -153,7 +153,7 @@ def evaluate_model(model, config: PPOConfig):
 
 def main():
     config = PPOConfig()
-    setup_wandb(config)
+    run = setup_wandb(config)
     
     # Create vectorized environment
     vec_env = SubprocVecEnv([make_env(config.env_id, i) for i in range(config.num_cpu)])
@@ -166,8 +166,7 @@ def main():
     model.learn(total_timesteps=config.total_timesteps, callback=callbacks)
 
     # Save model + normalization stats
-    model.save(config.model_save_path)
-    # vec_env.save(config.norm_path)
+    model.save(f"{config.model_save_path}/ppo_ur5_{run.id}.zip")
 
     # Evaluate model
     evaluate_model(model, config)
