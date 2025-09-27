@@ -9,7 +9,7 @@ obs, info = env.reset()
 
 i = 0 
 observations = []
-policy = PPO.load("./logs/best_model.zip")
+policy = PPO.load("./trained_models/ppo_ur5_52vnhzz6.zip")
 for i in range(5000):
     # i += 1
     action = env.action_space.sample()

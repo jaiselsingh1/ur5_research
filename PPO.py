@@ -30,7 +30,7 @@ class PPOConfig(typing.NamedTuple):
     n_steps: int = 4096
     batch_size: int = 128
     n_epochs: int = 10
-    total_timesteps: int = 20_000_000
+    total_timesteps: int = 50_000_000
     net_arch: dict = dict(pi=[128, 128], vf=[256, 256])
     
     # Policy settings

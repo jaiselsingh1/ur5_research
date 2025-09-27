@@ -27,6 +27,28 @@ class MPPI:
         self.data = env.data
 
         self.act_dim = env.action_space.shape[0]
-        
+        # control sequence over the horizon 
+        self.U = torch.zeros((self.horizon, self.act_dim), dtype=torch.float32)
+    
+    def _sample_noise(self):
+        return torch.randn((self.num_samples,self.horizon, self.act_dim)) * self.noise_sigma
+    
+    def _snapshot_state(self):
+        state = mujoco.mj_getState(self.model, self.data, mujoco.mjtState.mjSTATE_FULLPHYSICS)
+        return state.copy()
+
+    def _restore_state(self, data, state):
+        state = mujoco.mj_setState(self.model, data, state, mujoco.mjtState.mjSTATE_FULLPHYSICS)
+        mujoco.mj_forward(self.model, data)
+
+    def _rollout(self):
+        pass
+
+    def _control(self):
+        pass
+
+
+
+
         
 

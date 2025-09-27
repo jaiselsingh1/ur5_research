@@ -22,7 +22,7 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(37,), dtype=np.float32),  # 3 more for cvel of tape roll + 1 for contact
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(38,), dtype=np.float32),  # 3 more for cvel of tape roll + 1 for contact
             **kwargs,
         )
 
@@ -164,7 +164,7 @@ class ur5(MujocoEnv):
                 object_to_target,
                 ee_vel * 0.1,
                 tape_roll_vel,
-                # np.array([float(self.tape_roll_cont("ee_finger"))], dtype=np.float32)
+                np.array([float(self.tape_roll_cont("ee_finger"))], dtype=np.float32)
             ]
         )
         return obs.astype(np.float32)
