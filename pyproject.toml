@@ -9,7 +9,7 @@ dependencies = [
     "imageio>=2.37.0",
     "ipdb>=0.13.13",
     "ipython>=9.4.0",
-    "jax<0.7.0",
+    "jax[cuda12]<0.7.0",
     "jaxlib<0.7.0",
     "mujoco>=3.3.5",
     "mujoco-mjx>=3.3.5",

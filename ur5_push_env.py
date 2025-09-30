@@ -135,6 +135,35 @@ class ur5(MujocoEnv):
 
         return obs, reward, terminated, truncated, {}
 
+    # def _get_obs(self):
+    #     ee = self.ee_finger 
+    #     obj = self.tape_roll
+
+    #     ee_pos = ee.xpos  # views, no .copy()
+    #     # self.data.body("ee_finger").xpos is already a NumPy view into MuJoCo’s C-struct memory?
+    #     obj_pos = obj.xpos
+    #     obj_vel = obj.cvel[3:]          # linear vel (3,)
+    #     to_obj = obj_pos - ee_pos       # (3,)
+    #     to_goal = self.target_position - obj_pos
+
+    #     # normalized direction to goal
+    #     d = to_goal / (np.linalg.norm(to_goal) + 1e-8)
+    #     obj_speed_toward_goal = np.dot(obj_vel, d)
+
+    #     ee_vel = ee.cvel[3:]
+    #     ee_speed_toward_obj = np.dot(ee_vel, (to_obj / (np.linalg.norm(to_obj)+1e-8)))
+
+    #     obs = np.concatenate([
+    #         to_obj,                 # 3
+    #         to_goal,                # 3
+    #         obj_vel,                # 3 (or drop to keep very small)
+    #         np.array([obj_speed_toward_goal], np.float32),  # 1
+    #         np.array([ee_speed_toward_obj], np.float32),    # 1
+    #         np.array([ee_pos[2]], np.float32),              # 1
+    #         np.array([float(self.tape_roll_cont("ee_finger"))], np.float32)  # 1
+    #     ], dtype=np.float32)
+
+    #     return obs
         
     def _get_obs(self):
         qpos_ur5 = self.data.qpos[:6]
@@ -261,10 +290,10 @@ class ur5(MujocoEnv):
         ee_finger_xpos = self.data.body("ee_finger").xpos
 
         ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-        reward = -0.1 * ee_to_object**2
+        reward = -0.10 * ee_to_object**2
 
         obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
-        reward += -1.0 * obj_to_target**2
+        reward += -0.10 * obj_to_target**2
 
         if hasattr(self, "prev_tape_roll_pos"):
             prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
@@ -273,7 +302,7 @@ class ur5(MujocoEnv):
         self.prev_tape_roll_pos = tape_roll_xpos.copy()
 
         if self.tape_roll_cont("ee_finger"):
-            reward += 10.0
+            reward += 1.0
 
         if obj_to_target < 0.05:
             reward += 500

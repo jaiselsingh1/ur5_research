@@ -10,7 +10,7 @@ import typing
 
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 from stable_baselines3.common.callbacks import EvalCallback, CallbackList
-from stable_baselines3.common.utils import set_random_seed 
+from stable_baselines3.common.utils import set_random_seed, FloatSchedule
 from stable_baselines3.common.monitor import Monitor
 
 import wandb
@@ -23,15 +23,17 @@ from datetime import datetime
 class PPOConfig(typing.NamedTuple):
     # Environment settings
     env_id: str = "UR5-v1"
-    num_cpu: int = 8
+    num_cpu: int = 64
     
     # PPO hyperparameters
-    learning_rate: float = 1e-4
+    # learning_rate: float = 1e-4
+    learning_rate: typing.Any = FloatSchedule(3e-4)
+
     n_steps: int = 4096
-    batch_size: int = 128
+    batch_size: int = 4096
     n_epochs: int = 10
     total_timesteps: int = 50_000_000
-    net_arch: dict = dict(pi=[128, 128], vf=[256, 256])
+    net_arch: dict = dict(pi=[256, 256], vf=[256, 256])
     
     # Policy settings
     log_std_init: float = -1.0
