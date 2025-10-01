@@ -2,6 +2,7 @@ import numpy as np
 import mujoco
 import gymnasium as gym
 from gymnasium import spaces
+from scipy.spatial.transform import Rotation
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
 import copy 
 
@@ -18,7 +19,7 @@ gym.register(
 class ur5(MujocoEnv):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
 
-    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=10, **kwargs):
+    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=10, fix_orientation = True, **kwargs):
         super().__init__(
             model_path,
             frame_skip,
@@ -35,7 +36,11 @@ class ur5(MujocoEnv):
         self.act_rng = np.array([3.15, 3.15, 3.15, 3.2, 3.2, 3.2])
 
         # action: [dx, dy, dz, d_rx, d_ry, d_rz]
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
+        self.fix_orientation = fix_orientation
+        if self.fix_orientation:
+            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float64)
+        else:
+            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float64)
 
         # scaling 
         self.max_delta_pos = 0.02 # meters per step 
@@ -46,6 +51,9 @@ class ur5(MujocoEnv):
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
         self.target_position = np.array([0.7, 0.2, -0.1175])
         self.prev_tape_roll_pos = None
+
+        downward_rotation = Rotation.from_euler('xyz', [np.pi, 0, 0])
+        self.fixed_down_quat = downward_rotation.as_quat(scalar_first = True)
 
         # controller randomly sets state to discontinuous position/time 
         # you can't set the state of the word how the controller does it 
@@ -96,9 +104,12 @@ class ur5(MujocoEnv):
         
         # print(self.ee_target_quat, self.ee_finger.xquat.copy())
         # Convert back to quaternion and normalize
-        self.ee_target_quat = self._normalize_quaternion(
-             new_rotation.as_quat(scalar_first=True)
-        )
+        if self.fix_orientation:
+            self.ee_target_quat = self.fixed_down_quat
+        else:
+            self.ee_target_quat = self._normalize_quaternion(
+                new_rotation.as_quat(scalar_first=True)
+            )
 
         # command to controller
         cmd = cc.Command(

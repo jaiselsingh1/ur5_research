@@ -55,14 +55,16 @@ class PPOConfig(typing.NamedTuple):
     eval_episodes: int = 10
     eval_max_steps: int = 500
 
+    fix_orientation: bool = True  # added fix_orientation
+
 
 def create_ur5_env():
     return gym.make("UR5-v1")
 
 
-def make_env(env_id: str, rank: int, seed: int = 0):
+def make_env(env_id: str, rank: int, seed: int = 0, fix_orientation: bool = True):  # added fix_orientation
     def _init():
-        env = gym.make(env_id, render_mode=None)  
+        env = gym.make(env_id, render_mode=None, fix_orientation=fix_orientation)  # added fix_orientation
         env = Monitor(env)
         env.reset(seed=seed + rank)
         return env
@@ -107,7 +109,9 @@ def create_model(config: PPOConfig, vec_env):
 
 def create_callbacks(config: PPOConfig):
     """Create evaluation and wandb callbacks"""
-    eval_env = DummyVecEnv([lambda: Monitor(gym.make(config.env_id))])
+    eval_env = DummyVecEnv([
+        lambda: Monitor(gym.make(config.env_id, fix_orientation=config.fix_orientation))  # added fix_orientation
+    ])
     # eval_env = VecNormalize(
     #     eval_env,
     #     norm_obs=True,
@@ -138,7 +142,9 @@ def create_callbacks(config: PPOConfig):
 def evaluate_model(model, config: PPOConfig):
     """Evaluate trained model with human rendering"""
     # raw env with rendering
-    eval_env_human = DummyVecEnv([lambda: gym.make(config.env_id, render_mode="human")])
+    eval_env_human = DummyVecEnv([
+        lambda: gym.make(config.env_id, render_mode="human", fix_orientation=config.fix_orientation)  # added fix_orientation
+    ])
 
     # load normalization stats so evaluation matches training
     # eval_env_human = VecNormalize.load(config.norm_path, eval_env_human)
@@ -158,7 +164,10 @@ def main():
     run = setup_wandb(config)
     
     # Create vectorized environment
-    vec_env = SubprocVecEnv([make_env(config.env_id, i) for i in range(config.num_cpu)])
+    vec_env = SubprocVecEnv([
+        make_env(config.env_id, i, fix_orientation=config.fix_orientation)  # added fix_orientation
+        for i in range(config.num_cpu)
+    ])
     # vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True, clip_obs=10.0, gamma=0.99)
 
     model = create_model(config, vec_env)
