@@ -41,8 +41,16 @@ class MPPI:
         state = mujoco.mj_setState(self.model, data, state, mujoco.mjtState.mjSTATE_FULLPHYSICS)
         mujoco.mj_forward(self.model, data)
 
-    def _rollout(self):
-        pass
+    def _rollout(self, U_traj, curr_state):
+        temp_data = mujoco.MjData(self.model)
+        self._restore_state(temp_data, curr_state)
+
+        for t in range(self.horizon):
+            # U is the dimensions of self.act_dim over the horizon 
+            temp_data.ctrl[:self.act_dim] = U_traj[t, :].cpu().numpy()
+            mujoco.mj_step(self.model, temp_data)
+
+            
 
     def _control(self):
         pass

@@ -30,7 +30,7 @@ class CartesianController(object):
     """
 
     def __init__(
-        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.1, 0.1], gains=[1.0, 1.0]  # kinematics,
+        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 1.0], gains=[1.0, 5.0]  # kinematics,
     ):
         self.model = mj_model
         self.data = mj_data
@@ -44,13 +44,13 @@ class CartesianController(object):
 
         # Set max end effector velocity:
         # defaults in function signature are from cartesian_control.py
-        max_vel = [0.5, 1.0]  # robot_controller.py default
+        # max_vel = [0.5, 1.0]  # robot_controller.py default
         self.max_vel_trans = max_vel[0]  # m/s
         self.max_vel_ang = max_vel[1]  # rad/s
 
         # Cartesian controller velocity gains:
-        gains = [4.0, 2.0]  # ur5_trakstar_real.launch
-        gains = [4.0, 1.0]  # robot_controller.py default
+        # gains = [4.0, 2.0]  # ur5_trakstar_real.launch
+        # gains = [4.0, 1.0]  # robot_controller.py default
         self.trans_gain = gains[0]
         self.rot_gain = gains[1]
 
@@ -101,15 +101,22 @@ class CartesianController(object):
 
         R_diff = R_desired * R_current.inv()
         # diff in rot 
-        rvec = Rotation.as_rotvec(R_diff) 
-        rvec /= self.model.opt.timestep
+        max_ang_vel = self.max_vel_ang
+        rvec = R_diff.as_rotvec()
+        rvec_norm = np.linalg.norm(rvec)
+
+        if rvec_norm > 1e-6:
+            rvec = rvec / rvec_norm * np.clip(rvec_norm / self.model.opt.timestep, 0, max_ang_vel) * self.rot_gain
+        else:
+            rvec = np.zeros_like(rvec)
+
 
         jac = np.concatenate([self.jacp[:, :6], self.jacr[:, :6]])
         jac_pinv = np.linalg.pinv(jac, 1e-4)
 
         # convert difference in postions/rot into target vels 
         x_diff = target_xpos - xpos 
-        dx_des = (x_diff / self.model.opt.timestep)
+        dx_des = (x_diff / self.model.opt.timestep) * self.trans_gain
 
         xdot_des = np.concatenate([dx_des, rvec])
 

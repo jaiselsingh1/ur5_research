@@ -52,7 +52,7 @@ class ur5(MujocoEnv):
         self.target_position = np.array([0.7, 0.2, -0.1175])
         self.prev_tape_roll_pos = None
 
-        downward_rotation = Rotation.from_euler('xyz', [np.pi, 0, 0])
+        downward_rotation = Rotation.from_euler('xyz', [-np.pi, 0, -np.pi])
         self.fixed_down_quat = downward_rotation.as_quat(scalar_first = True)
 
         # controller randomly sets state to discontinuous position/time 
@@ -91,26 +91,27 @@ class ur5(MujocoEnv):
         # self.ee_target_pos = self.ee_target_pos + delta_pos
         self.ee_target_pos = self.ee_finger.xpos.copy() + delta_pos
 
-        # rotation update
-        delta_rot = action[3:] * self.max_delta_rot
-        
-        # Create rotation from delta rotation vector
-        delta_rotation = Rotation.from_rotvec(delta_rot)
-        
-        # Create rotation from current quaternion
-        current_rotation = Rotation.from_quat(self.ee_finger.xquat.copy(), scalar_first=True)
-        # Compose rotations
-        new_rotation = current_rotation * delta_rotation
-        
+
         # print(self.ee_target_quat, self.ee_finger.xquat.copy())
         # Convert back to quaternion and normalize
         if self.fix_orientation:
             self.ee_target_quat = self.fixed_down_quat
         else:
+            # rotation update
+            delta_rot = action[3:] * self.max_delta_rot
+            
+            # Create rotation from delta rotation vector
+            delta_rotation = Rotation.from_rotvec(delta_rot)
+            
+            # Create rotation from current quaternion
+            current_rotation = Rotation.from_quat(self.ee_finger.xquat.copy(), scalar_first=True)
+            # Compose rotations
+            new_rotation = current_rotation * delta_rotation
+
             self.ee_target_quat = self._normalize_quaternion(
                 new_rotation.as_quat(scalar_first=True)
             )
-
+            
         # command to controller
         cmd = cc.Command(
             trans_x=float(self.ee_target_pos[0]),
@@ -243,25 +244,31 @@ class ur5(MujocoEnv):
         # safe start based on XML
         qpos_1 = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         qpos_2 = np.array([-0.754, -0.628, 1.95, 0, 0.0232, 0])
+        q_pos_fix = np.array([0.126, -1.51, 2.26, -2.26, -1.63, 0])
 
-        if np.random.random() < 0.3:  
-            qpos[:6] = qpos_2   
+        if self.fix_orientation: 
+            qpos[:6] = q_pos_fix
             self.set_state(qpos, self.data.qvel)
-
+        
         else:
-            qpos[:6] = qpos_1
-            self.set_state(qpos, self.data.qvel)
-            target_quat = self.ee_finger.xquat.copy()
-            # mujoco.mj_setState(self.model, self.data, qpos, mujoco.mjtState.mjSTATE_QPOS) # this doesnt call forward hence quat = 0 norm 
+            if np.random.random() < 0.3:  
+                qpos[:6] = qpos_2   
+                self.set_state(qpos, self.data.qvel)
 
-            for _ in range(max_iters):
-                x_command = cc.Command(*target_pos, *target_quat) # takes an iterable and passes it as arguments in the order
-                qvel = np.clip(self.cartesian_controller.cartesian_command(self.data.qpos, x_command), -3.15, 3.15)
-                self.do_simulation(qvel, 1) # the controller is a velocity controller so you can just pass in qvel
+            else:
+                qpos[:6] = qpos_1
+                self.set_state(qpos, self.data.qvel)
+                target_quat = self.ee_finger.xquat.copy()
+                # mujoco.mj_setState(self.model, self.data, qpos, mujoco.mjtState.mjSTATE_QPOS) # this doesnt call forward hence quat = 0 norm 
 
-                error = np.linalg.norm(self.ee_finger.xpos - target_pos)
-                if error < tol:
-                    break 
+                for _ in range(max_iters):
+                    x_command = cc.Command(*target_pos, *target_quat) # takes an iterable and passes it as arguments in the order
+                    qvel = np.clip(self.cartesian_controller.cartesian_command(self.data.qpos, x_command), -3.15, 3.15)
+                    self.do_simulation(qvel, 1) # the controller is a velocity controller so you can just pass in qvel
+
+                    error = np.linalg.norm(self.ee_finger.xpos - target_pos)
+                    if error < tol:
+                        break 
 
             # print(error)
         # print(self.ee_finger.xquat)
@@ -284,7 +291,7 @@ class ur5(MujocoEnv):
 
         self.set_state(qpos, self.data.qvel)
 
-        if not self.tape_roll_cont("table"):
+        if not self.tape_roll_cont("table") and not self.fix_orientation:
             self.reset_model()
 
         self.ee_target_pos = self.ee_finger.xpos.copy()
