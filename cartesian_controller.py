@@ -30,7 +30,7 @@ class CartesianController(object):
     """
 
     def __init__(
-        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 1.0], gains=[1.0, 5.0]  # kinematics,
+        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 1.0], gains=[1.0, 5.0]  # kinematics, 
     ):
         self.model = mj_model
         self.data = mj_data
@@ -111,16 +111,27 @@ class CartesianController(object):
             rvec = np.zeros_like(rvec)
 
 
-        jac = np.concatenate([self.jacp[:, :6], self.jacr[:, :6]])
-        jac_pinv = np.linalg.pinv(jac, 1e-4)
+        # jac = np.concatenate([self.jacp[:, :6], self.jacr[:, :6]])
+        # jac_pinv = np.linalg.pinv(jac, 1e-4)
 
-        # convert difference in postions/rot into target vels 
+         # convert difference in postions/rot into target vels 
         x_diff = target_xpos - xpos 
         dx_des = (x_diff / self.model.opt.timestep) * self.trans_gain
 
         xdot_des = np.concatenate([dx_des, rvec])
 
-        qvel = jac_pinv @ xdot_des
+        # damped psuedo inverse
+        jac = np.empty((6, 6))
+        jac[:3, :] = self.jacp[:, :6]
+        jac[3:, :] = self.jacr[:, :6]
+
+        lam = 1e-3  # damping factor
+        JT = jac.T
+        A = JT @ jac + lam * np.eye(6)
+        b = JT @ xdot_des
+        qvel = np.linalg.solve(A, b)
+
+        # qvel = jac_pinv @ xdot_des
 
         return qvel
 

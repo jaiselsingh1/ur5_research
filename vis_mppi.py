@@ -10,7 +10,7 @@ obs, _ = env.reset()
 
 action = env.action_space.sample()
 action = np.zeros_like(action)
-action[2] = 1.0
+action[1] = 1.0
 
 for i in range(1000):
     obs, _, _, _, _= env.step(action)
