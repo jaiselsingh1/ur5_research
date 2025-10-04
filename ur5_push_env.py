@@ -225,7 +225,6 @@ class ur5(MujocoEnv):
             
         return False
 
-
     def reset_random_pose(self, max_iters=1000, tol=1e-5):
         qpos = self.init_qpos.copy()
 
@@ -244,7 +243,8 @@ class ur5(MujocoEnv):
         # safe start based on XML
         qpos_1 = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         qpos_2 = np.array([-0.754, -0.628, 1.95, 0, 0.0232, 0])
-        q_pos_fix = np.array([0.126, -1.51, 2.26, -2.26, -1.63, 0])
+        q_pos_fix = np.array([0.126, -0.942, 1.95, -2.58, -1.63, 0])
+        # q_pos_fix = np.array([0.126, -1.51, 2.26, -2.26, -1.63, 0])
 
         if self.fix_orientation: 
             qpos[:6] = q_pos_fix
@@ -270,8 +270,6 @@ class ur5(MujocoEnv):
                     if error < tol:
                         break 
 
-            # print(error)
-        # print(self.ee_finger.xquat)
 
     def reset_model(self):
         # from the sim
@@ -316,7 +314,7 @@ class ur5(MujocoEnv):
         if hasattr(self, "prev_tape_roll_pos"):
             prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
             progress = prev_dist - obj_to_target  # positive if object moved closer
-            reward += 50.0 * progress
+            reward += 25.0 * progress  # reduced from 50.0 assuming that the policy is just learning to push it no matter what
         self.prev_tape_roll_pos = tape_roll_xpos.copy()
 
         if self.tape_roll_cont("ee_finger"):
@@ -329,5 +327,13 @@ class ur5(MujocoEnv):
         target_dir = (self.target_position - tape_roll_xpos)
         target_dir /= (np.linalg.norm(target_dir) + 1e-8)  # normalization 
         reward += 10.0 * np.dot(obj_vel, target_dir)  # positive if moving toward goal
+
+        # pendalize very large joint velocities 
+        joint_vel = self.data.qvel[:6]
+        reward -= 0.01 * np.sum(joint_vel**2)
+
+        if self.fix_orientation:
+            quat_error = np.linalg.norm(self.ee_finger.xquat - self.fixed_down_quat)
+            reward -= 1.0 * quat_error
 
         return reward
