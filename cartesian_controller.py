@@ -131,7 +131,7 @@ class CartesianController(object):
         b = JT @ xdot_des
         qvel = np.linalg.solve(A, b)
 
-        # qvel = jac_pinv @ xdot_des
+        qvel = jac_pinv @ xdot_des
 
         return qvel
 
