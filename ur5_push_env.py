@@ -330,10 +330,7 @@ class ur5(MujocoEnv):
 
         # penalize very large joint velocities 
         joint_vel = self.data.qvel[:6]
-        reward -= 0.05 * np.sum(joint_vel**2)
-
-        if self.fix_orientation:
-            quat_error = np.linalg.norm(self.ee_finger.xquat - self.fixed_down_quat)
-            reward -= 10.0 * quat_error
+        reward -= 0.05 * np.sum(joint_vel**2) # print value for joint_vels to see scale
+        
 
         return reward
