@@ -45,30 +45,23 @@ class MPPI:
         
         rollout_states, _ = rollout.rollout(self.model, self.data, states, controls, persistent_pool=True)
         
-        return rollout_states
+        # cost calculations
+        ee_pos = rollout_states[:, :, 12:15]         # (samples, timesteps, state size)
+        tape_pos = rollout_states[:, :, 19:22]
+        target_pos = rollout_states[:, :, 22:25]
 
-    
-    # def _sample_noise(self):
-    #     return torch.randn((self.num_samples,self.horizon, self.act_dim)) * self.noise_sigma
-    
-    # def _snapshot_state(self):
-    #     state = mujoco.mj_getState(self.model, self.data, mujoco.mjtState.mjSTATE_FULLPHYSICS)
-    #     return state.copy()
+        # both are the same size
+        ee_to_obj = np.linalg.norm(tape_pos - ee_pos)
+        obj_to_tar = np.linalg.norm(target_pos - tape_pos)
 
-    # def _restore_state(self, data, state):
-    #     state = mujoco.mj_setState(self.model, data, state, mujoco.mjtState.mjSTATE_FULLPHYSICS)
-    #     mujoco.mj_forward(self.model, data)
+        # instantaneous costs 
+        q = 2.0 * ee_to_obj**2 + 10.0 * obj_to_tar**2 
 
-    # def _rollout(self, U_traj, curr_state):
-    #     temp_data = mujoco.MjData(self.model)
-    #     self._restore_state(temp_data, curr_state)
+        # regularization term + control costs 
+        # sigma_inv = 
 
-    #     states, _ = mujoco.rollout.rollout(self.model, temp_data, curr_state, U_traj, persistent_pool=True)
 
-    #     # for t in range(self.horizon):
-    #     #     # U is the dimensions of self.act_dim over the horizon 
-    #     #     temp_data.ctrl[:self.act_dim] = U_traj[t, :].cpu().numpy()
-    #     #     mujoco.mj_step(self.model, temp_data)     
 
-    # def _control(self):
-    #     pass
+
+        return rollout_states 
+
