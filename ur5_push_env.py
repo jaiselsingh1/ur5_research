@@ -328,12 +328,4 @@ class ur5(MujocoEnv):
         target_dir /= (np.linalg.norm(target_dir) + 1e-8)  # normalization 
         reward += 10.0 * np.dot(obj_vel, target_dir)  # positive if moving toward goal
 
-        # penalize very large joint velocities 
-        joint_vel = self.data.qvel[:6]
-        reward -= 0.05 * np.sum(joint_vel**2)
-
-        if self.fix_orientation:
-            quat_error = np.linalg.norm(self.ee_finger.xquat - self.fixed_down_quat)
-            reward -= 10.0 * quat_error
-
         return reward
