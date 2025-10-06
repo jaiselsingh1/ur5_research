@@ -54,6 +54,8 @@ class CartesianController(object):
         self.trans_gain = gains[0]
         self.rot_gain = gains[1]
 
+        self.q_limit = -np.pi/2
+
     def homogenous_matrix(self, x, y, z, rot_x, rot_y, rot_z, rot_w):
         A_from_B = np.eye(4)
         A_from_B[:3,3] = np.array(
@@ -88,7 +90,7 @@ class CartesianController(object):
         # mj.mj_setState(self.model, self.data, q_current, mj.mjtState.mjSTATE_QPOS)
         # mj.mj_forward(mj.model, mj.data)
         mj.mj_jacBody(self.model, self.data, self.jacp, self.jacr, self.ee_body.id)
-
+        
         xquat = self.ee_body.xquat.copy()
         xpos = self.ee_body.xpos.copy()
         
@@ -130,6 +132,10 @@ class CartesianController(object):
         A = JT @ jac + lam * np.eye(6)
         b = JT @ xdot_des
         qvel = np.linalg.solve(A, b)
+
+        if self.data.qpos[1] <= self.q_limit:
+            error = self.q_limit - self.data.qpos[1]
+            qvel[1] = error * np.pi
 
         # qvel = jac_pinv @ xdot_des
 
