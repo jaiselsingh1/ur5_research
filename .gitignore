@@ -18,3 +18,4 @@ ur5_policy.mp4
 trained_models/
 trained_models.pt
 ppo_cartpole.zip
+best_model.zip
