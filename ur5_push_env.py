@@ -315,7 +315,7 @@ class ur5(MujocoEnv):
         if hasattr(self, "prev_tape_roll_pos"):
             prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
             progress = prev_dist - obj_to_target  # positive if object moved closer
-            reward += 25.0 * progress  # reduced from 50.0 assuming that the policy is just learning to push it no matter what
+            reward += 50.0 * progress  
         self.prev_tape_roll_pos = tape_roll_xpos.copy()
 
         if self.tape_roll_cont("ee_finger"):
@@ -333,6 +333,6 @@ class ur5(MujocoEnv):
         # angle between current and desired orientation
             q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
             ang_err = (self.q_des * q_cur.inv()).magnitude()  # radians
-            reward += -5.0 * ang_err
+            reward += -0.01 * ang_err
 
         return reward
