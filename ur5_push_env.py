@@ -54,6 +54,7 @@ class ur5(MujocoEnv):
 
         downward_rotation = Rotation.from_euler('xyz', [-np.pi, 0, -np.pi])
         self.fixed_down_quat = downward_rotation.as_quat(scalar_first = True)
+        self.q_des = Rotation.from_quat(self.fixed_down_quat, scalar_first=True)
 
         # controller randomly sets state to discontinuous position/time 
         # you can't set the state of the word how the controller does it 
@@ -327,5 +328,11 @@ class ur5(MujocoEnv):
         target_dir = (self.target_position - tape_roll_xpos)
         target_dir /= (np.linalg.norm(target_dir) + 1e-8)  # normalization 
         reward += 10.0 * np.dot(obj_vel, target_dir)  # positive if moving toward goal
+
+        if self.fix_orientation:
+        # angle between current and desired orientation
+            q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
+            ang_err = (self.q_des * q_cur.inv()).magnitude()  # radians
+            reward += -5.0 * ang_err
 
         return reward
