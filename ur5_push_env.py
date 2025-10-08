@@ -4,7 +4,8 @@ import gymnasium as gym
 from gymnasium import spaces
 from scipy.spatial.transform import Rotation
 from gymnasium.envs.mujoco.mujoco_env import MujocoEnv
-import copy 
+# for reward structure 
+from dataclasses import dataclass, asdict
 
 # import cc_with_cmd as cc  # Cartesian controller
 import cartesian_controller as cc 
@@ -301,38 +302,58 @@ class ur5(MujocoEnv):
 
         return self._get_obs()
     
+    @dataclass
+    class reward_scales:
+        ee_to_object: float = -0.10
+        obj_to_target: float = -0.10
+        progress: float = 50.0
+        contact: float = 1.0
+        success: float = 500.0
+        velocity_alignment: float = 10.0
+        orientation: float = -0.01
+    
+    def reward_dict(self) -> dict:
+        s = self.reward_scales()
 
-    def get_reward(self):
-        tape_roll_xpos = self.data.body("tape_roll").xpos
-        ee_finger_xpos = self.data.body("ee_finger").xpos
-
-        ee_to_object = np.linalg.norm(ee_finger_xpos - tape_roll_xpos)
-        reward = -0.10 * ee_to_object**2
-
-        obj_to_target = np.linalg.norm(self.target_position - tape_roll_xpos)
-        reward += -0.10 * obj_to_target**2
-
+        tape_pos = self.data.body("tape_roll").xpos
+        ee_pos = self.data.body("ee_finger").xpos
+        
+        # Compute raw values
+        ee_to_obj = np.linalg.norm(ee_pos - tape_pos)
+        obj_to_target = np.linalg.norm(self.target_position - tape_pos)
+        
+        progress = 0.0
         if hasattr(self, "prev_tape_roll_pos"):
             prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
-            progress = prev_dist - obj_to_target  # positive if object moved closer
-            reward += 50.0 * progress  
-        self.prev_tape_roll_pos = tape_roll_xpos.copy()
-
-        if self.tape_roll_cont("ee_finger"):
-            reward += 1.0
-
-        if obj_to_target < 0.05:
-            reward += 500
-
-        obj_vel = self.data.body("tape_roll").cvel[3:]  # linear velocity
-        target_dir = (self.target_position - tape_roll_xpos)
-        target_dir /= (np.linalg.norm(target_dir) + 1e-8)  # normalization 
-        reward += 10.0 * np.dot(obj_vel, target_dir)  # positive if moving toward goal
-
+            progress = prev_dist - obj_to_target
+        self.prev_tape_roll_pos = tape_pos.copy()
+        
+        obj_vel = self.data.body("tape_roll").cvel[3:]
+        target_dir = self.target_position - tape_pos
+        target_dir /= (np.linalg.norm(target_dir) + 1e-8)
+        vel_align = np.dot(obj_vel, target_dir)
+        
+        ang_err = 0.0
         if self.fix_orientation:
-        # angle between current and desired orientation
             q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
-            ang_err = (self.q_des * q_cur.inv()).magnitude()  # radians
-            reward += -0.01 * ang_err
+            ang_err = (self.q_des * q_cur.inv()).magnitude()
+        
+        # Apply scales and return
+        return {
+            "ee_to_object": s.ee_to_object * ee_to_obj**2,
+            "obj_to_target": s.obj_to_target * obj_to_target**2,
+            "progress": s.progress * progress,
+            "contact": s.contact if self.tape_roll_cont("ee_finger") else 0.0,
+            "success": s.success if obj_to_target < 0.05 else 0.0,
+            "velocity_alignment": s.velocity_alignment * vel_align,
+            "orientation": s.orientation * ang_err,
+        }
+    
+    def get_reward(self):
+       return sum(self.reward_dict().values())       
 
-        return reward
+
+
+
+
+

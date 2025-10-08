@@ -1,5 +1,6 @@
 import mujoco
 import gymnasium as gym
+import callbacks
 
 import ur5_env  # this runs gym.register for UR5-v0
 import ur5_push_env  # for pushing task
@@ -18,7 +19,6 @@ from wandb.integration.sb3 import WandbCallback
 
 import os
 from datetime import datetime
-
 
 class PPOConfig(typing.NamedTuple):
     # Environment settings
