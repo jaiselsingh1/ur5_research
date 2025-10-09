@@ -352,7 +352,8 @@ class ur5(MujocoEnv):
         success = obj_to_target < 0.05
 
         return {
-            "ee_approach": 5.0 * ee_approach * (1.0 - contact),
+            # "ee_approach": 5.0 * ee_approach * (1.0 - contact),
+            "ee_distance": - 1.0 * ee_to_obj * (1.0 - contact),
             "contact_progress": 100.0 * progress * contact,
             "velocity_alignment": 10.0 * vel_align * contact,
             "success": 500.0 if success else 0.0,
