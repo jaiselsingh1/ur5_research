@@ -307,53 +307,99 @@ class ur5(MujocoEnv):
         ee_to_object: float = -0.10
         obj_to_target: float = -0.10
         progress: float = 50.0
-        contact: float = 1.0
+        contact: float = 10.0
         success: float = 500.0
         velocity_alignment: float = 10.0
+        ee_approaching: float = 5.0
         orientation: float = -0.01
+    
     
     def reward_dict(self) -> dict:
         s = self.reward_scales()
 
         tape_pos = self.data.body("tape_roll").xpos
-        ee_pos = self.data.body("ee_finger").xpos
-        
-        # Compute raw values
-        ee_to_obj = np.linalg.norm(ee_pos - tape_pos)
-        obj_to_target = np.linalg.norm(self.target_position - tape_pos)
-        
-        progress = 0.0
-        if hasattr(self, "prev_tape_roll_pos"):
-            prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
-            progress = prev_dist - obj_to_target
-        self.prev_tape_roll_pos = tape_pos.copy()
-        
+        ee_pos = self.ee_finger.xpos
         obj_vel = self.data.body("tape_roll").cvel[3:]
         target_dir = self.target_position - tape_pos
         target_dir /= (np.linalg.norm(target_dir) + 1e-8)
-        vel_align = np.dot(obj_vel, target_dir)
-        
-        ang_err = 0.0
+
+        ee_to_obj = np.linalg.norm(ee_pos - tape_pos)
+        obj_to_target = np.linalg.norm(self.target_position - tape_pos)
+
+        # progress of object toward target
+        if hasattr(self, "prev_tape_roll_pos"):
+            prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
+            progress = max(prev_dist - obj_to_target, 0.0)
+        else:
+            progress = 0.0
+        self.prev_tape_roll_pos = tape_pos.copy()
+
+         # end-effector approaching object
+        if hasattr(self, "prev_ee_to_obj"):
+            ee_approach = max(self.prev_ee_to_obj - ee_to_obj, 0.0)
+        else:
+            ee_approach = 0.0
+        self.prev_ee_to_obj = ee_to_obj
+
+        contact = float(self.tape_roll_cont("ee_finger"))
+        vel_align = np.clip(np.dot(obj_vel, target_dir), -0.1, 0.1)
+
         if self.fix_orientation:
             q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
             ang_err = (self.q_des * q_cur.inv()).magnitude()
-        
-        # Apply scales and return
+        else:
+            ang_err = 0.0
+
+        success = obj_to_target < 0.05
+
         return {
-            "ee_to_object": s.ee_to_object * ee_to_obj**2,
-            "obj_to_target": s.obj_to_target * obj_to_target**2,
-            "progress": s.progress * progress,
-            "contact": s.contact if self.tape_roll_cont("ee_finger") else 0.0,
-            "success": s.success if obj_to_target < 0.05 else 0.0,
-            "velocity_alignment": s.velocity_alignment * vel_align,
-            "orientation": s.orientation * ang_err,
+            "ee_approach": 5.0 * ee_approach * (1.0 - contact),
+            "contact_progress": 100.0 * progress * contact,
+            "velocity_alignment": 10.0 * vel_align * contact,
+            "success": 500.0 if success else 0.0,
+            "orientation": -0.01 * ang_err,
         }
-    
+
     def get_reward(self):
        return sum(self.reward_dict().values())       
 
 
+# def reward_dict(self) -> dictd:
+    #     s = self.reward_scales()
 
+    #     tape_pos = self.data.body("tape_roll").xpos
+    #     ee_pos = self.data.body("ee_finger").xpos
+        
+    #     # Compute raw values
+    #     ee_to_obj = np.linalg.norm(ee_pos - tape_pos)
+    #     obj_to_target = np.linalg.norm(self.target_position - tape_pos)
+        
+    #     progress = 0.0
+    #     if hasattr(self, "prev_tape_roll_pos"):
+    #         prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
+    #         progress = prev_dist - obj_to_target
+    #     self.prev_tape_roll_pos = tape_pos.copy()
+        
+    #     obj_vel = self.data.body("tape_roll").cvel[3:]
+    #     target_dir = self.target_position - tape_pos
+    #     target_dir /= (np.linalg.norm(target_dir) + 1e-8)
+    #     vel_align = np.dot(obj_vel, target_dir)
+        
+    #     ang_err = 0.0
+    #     if self.fix_orientation:
+    #         q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
+    #         ang_err = (self.q_des * q_cur.inv()).magnitude()
+        
+    #     # Apply scales and return
+    #     return {
+    #         "ee_to_object": s.ee_to_object * ee_to_obj**2,
+    #         "obj_to_target": s.obj_to_target * obj_to_target**2,
+    #         "progress": s.progress * progress,
+    #         "contact": s.contact if self.tape_roll_cont("ee_finger") else 0.0,
+    #         "success": s.success if obj_to_target < 0.05 else 0.0,
+    #         "velocity_alignment": s.velocity_alignment * vel_align,
+    #         "orientation": s.orientation * ang_err,
+    #     }
 
 
 
