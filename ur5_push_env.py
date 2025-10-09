@@ -136,7 +136,12 @@ class ur5(MujocoEnv):
             self.render()
 
         obs = self._get_obs()
+        reward_dict = self.reward_dict() 
         reward = self.get_reward()
+
+        # only step should change the actual env 
+        self.prev_tape_roll_pos = self.tape_roll.xpos
+        self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
 
         tape_roll_xpos = self.data.body("tape_roll").xpos
         target_position = self.target_position
@@ -147,7 +152,7 @@ class ur5(MujocoEnv):
         if truncated:
             reward -= 100
 
-        return obs, reward, terminated, truncated, {}
+        return obs, reward, terminated, truncated, reward_dict
 
     # def _get_obs(self):
     #     ee = self.ee_finger 
@@ -298,7 +303,9 @@ class ur5(MujocoEnv):
         self.ee_target_quat = self.ee_finger.xquat.copy()
 
         # reset prev tape roll position for reward shaping
-        self.prev_tape_roll_pos = self.data.body("tape_roll").xpos.copy()
+        self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
+        self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
+
 
         return self._get_obs()
     
@@ -317,9 +324,9 @@ class ur5(MujocoEnv):
     def reward_dict(self) -> dict:
         s = self.reward_scales()
 
-        tape_pos = self.data.body("tape_roll").xpos
+        tape_pos = self.tape_roll.xpos
         ee_pos = self.ee_finger.xpos
-        obj_vel = self.data.body("tape_roll").cvel[3:]
+        obj_vel = self.tape_roll.cvel[3:]
         target_dir = self.target_position - tape_pos
         target_dir /= (np.linalg.norm(target_dir) + 1e-8)
 
@@ -327,19 +334,11 @@ class ur5(MujocoEnv):
         obj_to_target = np.linalg.norm(self.target_position - tape_pos)
 
         # progress of object toward target
-        if hasattr(self, "prev_tape_roll_pos"):
-            prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
-            progress = max(prev_dist - obj_to_target, 0.0)
-        else:
-            progress = 0.0
-        self.prev_tape_roll_pos = tape_pos.copy()
+        prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
+        progress = prev_dist - obj_to_target
 
          # end-effector approaching object
-        if hasattr(self, "prev_ee_to_obj"):
-            ee_approach = max(self.prev_ee_to_obj - ee_to_obj, 0.0)
-        else:
-            ee_approach = 0.0
-        self.prev_ee_to_obj = ee_to_obj
+        ee_approach = self.prev_ee_to_obj - ee_to_obj
 
         contact = float(self.tape_roll_cont("ee_finger"))
         vel_align = np.clip(np.dot(obj_vel, target_dir), -0.1, 0.1)
