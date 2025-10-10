@@ -337,8 +337,8 @@ class ur5(MujocoEnv):
         prev_dist = np.linalg.norm(self.target_position - self.prev_tape_roll_pos)
         progress = prev_dist - obj_to_target
 
-         # end-effector approaching object
-        ee_approach = self.prev_ee_to_obj - ee_to_obj
+        # end-effector approaching object
+        # ee_approach = self.prev_ee_to_obj - ee_to_obj
 
         contact = float(self.tape_roll_cont("ee_finger"))
         vel_align = np.clip(np.dot(obj_vel, target_dir), -0.1, 0.1)
