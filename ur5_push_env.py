@@ -353,7 +353,8 @@ class ur5(MujocoEnv):
 
         return {
             # "ee_approach": 5.0 * ee_approach * (1.0 - contact),
-            "ee_distance": - 1.0 * ee_to_obj * (1.0 - contact),
+            "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
+            "contact": 10.0 if contact else 0.0, 
             "contact_progress": 100.0 * progress * contact,
             "velocity_alignment": 10.0 * vel_align * contact,
             "success": 500.0 if success else 0.0,
