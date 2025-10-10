@@ -30,11 +30,11 @@ class CartesianController(object):
     """
 
     def __init__(
-        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 1.0], gains=[1.0, 5.0]  # kinematics, 
+        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 0.25], gains=[1.0, 10.0]  # kinematics, 
     ):
         self.model = mj_model
         self.data = mj_data
-
+        
         self.jacp = np.zeros((3, self.model.nv))
         self.jacr = np.zeros((3, self.model.nv))
         self.ee_body = self.data.body("ee_finger")

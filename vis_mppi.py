@@ -8,14 +8,14 @@ env = ur5_push_env.ur5(render_mode="human", fix_orientation=True)
 obs, _ = env.reset()
 
 #  # load model
-model = PPO.load("./trained_models/ppo_ur5_6o4okz8c")
+model = PPO.load("./trained_models/ppo_ur5_d87rsg5s.zip")
 
-for i in range(1000):
+for i in range(10000):
 
-    if i % 100 == 0:
+    if i % 500 == 0:
         obs, _ = env.reset()
 
-    action, _ = model.predict(obs, deterministic=False)
+    action, _ = model.predict(obs, deterministic=True)
     obs, reward, done, truncated, reward_dict = env.step(action)
     print(reward_dict)
 
