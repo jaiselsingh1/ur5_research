@@ -138,6 +138,7 @@ class CartesianController(object):
         #     qvel[1] = error * np.pi
 
         # qvel = jac_pinv @ xdot_des
+
         return qvel
 
     def set_desired_ee_pos(self, x_command: Command):
