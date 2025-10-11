@@ -30,7 +30,7 @@ class CartesianController(object):
     """
 
     def __init__(
-        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 0.25], gains=[1.0, 10.0]  # kinematics, 
+        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.01, 1.0], gains=[0.3, 10.0]  # kinematics, 
     ):
         self.model = mj_model
         self.data = mj_data
@@ -54,7 +54,7 @@ class CartesianController(object):
         self.trans_gain = gains[0]
         self.rot_gain = gains[1]
 
-        self.q_limit = -np.pi/2
+        # self.q_limit = -np.pi/2
 
     def homogenous_matrix(self, x, y, z, rot_x, rot_y, rot_z, rot_w):
         A_from_B = np.eye(4)
@@ -127,18 +127,18 @@ class CartesianController(object):
         jac[:3, :] = self.jacp[:, :6]
         jac[3:, :] = self.jacr[:, :6]
 
-        lam = 1e-3  # damping factor
+        lam = 1e-2  # damping factor
         JT = jac.T
         A = JT @ jac + lam * np.eye(6)
         b = JT @ xdot_des
         qvel = np.linalg.solve(A, b)
 
-        if self.data.qpos[1] <= self.q_limit:
-            error = self.q_limit - self.data.qpos[1]
-            qvel[1] = error * np.pi
+        # if self.data.qpos[1] <= self.q_limit:
+        #     error = self.q_limit - self.data.qpos[1]
+        #     qvel[1] = error * np.pi
 
         # qvel = jac_pinv @ xdot_des
-
+        print(qvel)
         return qvel
 
     def set_desired_ee_pos(self, x_command: Command):
