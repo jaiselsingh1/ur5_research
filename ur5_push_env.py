@@ -341,7 +341,7 @@ class ur5(MujocoEnv):
         # ee_approach = self.prev_ee_to_obj - ee_to_obj
 
         contact = float(self.tape_roll_cont("ee_finger"))
-        vel_align = np.clip(np.dot(obj_vel, target_dir)) #-0.1, 0.1)
+        vel_align = np.clip(np.dot(obj_vel, target_dir), -1.0, 1.0)
 
         if self.fix_orientation:
             q_cur = Rotation.from_quat(self.ee_finger.xquat, scalar_first=True)
@@ -356,7 +356,7 @@ class ur5(MujocoEnv):
             "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
             "contact": 10.0 if contact else 0.0, 
             "contact_progress": 100.0 * progress * contact,
-            "velocity_alignment": 25.0 * vel_align * contact, # increased from 10
+            "velocity_alignment": 10.0 * vel_align , #* contact, 
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
         }
