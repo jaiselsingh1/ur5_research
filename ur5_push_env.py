@@ -140,7 +140,7 @@ class ur5(MujocoEnv):
         reward = self.get_reward()
 
         # only step should change the actual env 
-        self.prev_tape_roll_pos = self.tape_roll.xpos
+        self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
         self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
 
         tape_roll_xpos = self.tape_roll.xpos
