@@ -8,7 +8,7 @@ env = ur5_push_env.ur5(render_mode="human", fix_orientation=True)
 obs, _ = env.reset()
 
 #  # load model
-model = PPO.load("./trained_models/ppo_ur5_ml53je4a.zip")
+model = PPO.load("./trained_models/ppo_ur5_4mx4eqmh.zip")
 # action = np.zeros(6)
 
 for i in range(10000):
