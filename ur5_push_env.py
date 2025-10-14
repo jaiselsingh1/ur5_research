@@ -118,7 +118,7 @@ class ur5(MujocoEnv):
         cmd = cc.Command(
             trans_x=np.clip(float(self.ee_target_pos[0]), 0.502 - 0.3, 0.502 + 0.3),
             trans_y=np.clip(float(self.ee_target_pos[1]), -0.6, 0.6),
-            trans_z=np.clip(float(self.ee_target_pos[2]), 0.03, 0.3),
+            trans_z=float(self.ee_target_pos[2]),  #0.03, 0.3), # changed this to see if it can learn the z orientation 
             rot_x=float(self.ee_target_quat[1]),
             rot_y=float(self.ee_target_quat[2]),
             rot_z=float(self.ee_target_quat[3]),
@@ -349,13 +349,22 @@ class ur5(MujocoEnv):
         else:
             ang_err = 0.0
 
+        ee_height = self.ee_finger.xpos[2]
+        if ee_height < 0.03:
+            height_penalty = -10.0 * (0.03 - ee_height)  # penalty increases as you go lower
+        elif ee_height > 0.3:
+            height_penalty = -10.0 * (ee_height - 0.3)   # penalty increases as you go higher
+        else:
+            height_penalty = 0.0
+        
         success = obj_to_target < 0.05
 
         return {
             # "ee_approach": 5.0 * ee_approach * (1.0 - contact),
+            "ee_height": height_penalty, 
             "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
             "contact": 2.0 if contact else 0.0, 
-            "contact_progress": 100.0 * progress * contact,
+            "contact_progress": 100.0 * progress, #* contact,
             "velocity_alignment": 10.0 * vel_align , #* contact, 
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
@@ -365,7 +374,7 @@ class ur5(MujocoEnv):
        return sum(self.reward_dict().values())       
 
 
-# def reward_dict(self) -> dictd:
+# def reward_dict(self) -> dict:
     #     s = self.reward_scales()
 
     #     tape_pos = self.data.body("tape_roll").xpos
