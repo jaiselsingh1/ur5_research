@@ -1,6 +1,6 @@
 import mujoco
 import gymnasium as gym
-import callbacks
+import custom_callbacks
 
 import ur5_env  # this runs gym.register for UR5-v0
 import ur5_push_env  # for pushing task

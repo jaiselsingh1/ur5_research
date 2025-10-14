@@ -86,6 +86,10 @@ class ur5(MujocoEnv):
     def step(self, action):
         action = np.clip(action, -1.0, 1.0).astype(np.float64)
 
+        # before the physics are called
+        prev_tape = self.tape_roll.xpos.copy()
+        prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
+
         # translation update
         delta_pos = action[:3] * self.max_delta_pos
 
@@ -140,8 +144,10 @@ class ur5(MujocoEnv):
         reward = self.get_reward()
 
         # only step should change the actual env 
-        self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
-        self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
+        self.prev_tape_roll_pos = prev_tape
+        self.prev_ee_to_obj = prev_ee_to_obj
+        # self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
+        # self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
 
         tape_roll_xpos = self.tape_roll.xpos
         target_position = self.target_position
@@ -360,11 +366,10 @@ class ur5(MujocoEnv):
         success = obj_to_target < 0.05
 
         return {
-            # "ee_approach": 5.0 * ee_approach * (1.0 - contact),
             "ee_height": height_penalty, 
             "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
             "contact": 2.0 if contact else 0.0, 
-            "contact_progress": 100.0 * progress, #* contact,
+            "progress": 100.0 * progress, #* contact,
             "velocity_alignment": 10.0 * vel_align , #* contact, 
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
