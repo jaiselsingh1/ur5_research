@@ -50,7 +50,12 @@ class ur5(MujocoEnv):
         # targets
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
-        self.target_position = np.array([0.7, 0.2, -0.1175])
+
+
+        self.target_body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "target_marker")
+        self.target_position = self.set_target_pos(default=False)
+        self._move_target_marker(self.target_position)
+
         self.prev_tape_roll_pos = None
 
         downward_rotation = Rotation.from_euler('xyz', [-np.pi, 0, -np.pi])
@@ -69,6 +74,10 @@ class ur5(MujocoEnv):
         # This creates a quaternion for pointing straight down
         # downward_rotation = Rotation.from_euler('xyz', [np.pi/2, 0, 3*np.pi/2])  
         # self.fixed_ee_quat = downward_rotation.as_quat(scalar_first=True)
+
+    def _move_target_marker(self, target_position):
+        self.model.body_pos[self.target_body_id] = np.asarray(target_position, dtype=np.float64)
+        mujoco.mj_forward(self.model, self.data)
 
 
     def _normalize_quaternion(self, quat):
@@ -252,7 +261,6 @@ class ur5(MujocoEnv):
                       np.random.uniform(-0.1475, -0.05) # above surface
                       ])
         
-        # np.array([1, 0, 0.0, 0]) # xyzw 
         # safe start based on XML
         qpos_1 = np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
         qpos_2 = np.array([-0.754, -0.628, 1.95, 0, 0.0232, 0])
@@ -284,6 +292,22 @@ class ur5(MujocoEnv):
                         break 
 
 
+    def set_target_pos(self, default=True):
+        if default:
+            target_pos = np.array([0.7, 0.2, -0.1175], dtype=np.float64)
+        else:
+            x_min, x_max = 0.502 - 0.3, 0.502 + 0.3
+            y_min, y_max = -0.6, 0.6
+
+            z_tar = -0.1175 # based on printing the tape roll z in the env and the xml 
+            x_tar = np.random.uniform(x_min, x_max)
+            y_tar = np.random.uniform(y_min, y_max)
+            target_pos = np.array([x_tar, y_tar, z_tar], dtype=np.float64)
+
+        self._move_target_marker(target_pos)
+        return target_pos
+
+
     def reset_model(self):
         # from the sim
         #base_pose= np.array([0, -0.44, 1.01, -0.44, -1.38, 0])
@@ -311,7 +335,7 @@ class ur5(MujocoEnv):
         # reset prev tape roll position for reward shaping
         self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
         self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
-
+        self.target_position = self.set_target_pos(default=False)
 
         return self._get_obs()
     
