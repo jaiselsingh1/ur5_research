@@ -24,7 +24,7 @@ class ur5(MujocoEnv):
         super().__init__(
             model_path,
             frame_skip,
-            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(38,), dtype=np.float32),  # 3 more for cvel of tape roll + 1 for contact
+            observation_space=spaces.Box(low=-np.inf, high=np.inf, shape=(45,), dtype=np.float32),  # 3 more for cvel of tape roll + 1 for contact
             **kwargs,
         )
 
@@ -68,6 +68,7 @@ class ur5(MujocoEnv):
         # data_copy = copy.deepcopy(self.data)
         self.cartesian_controller = cc.CartesianController(self.model, self.data)
         self.tape_roll = self.data.body("tape_roll")
+        self.des_z = -0.1175 # based on the xml 
         self.ee_finger = self.data.body("ee_finger")
 
         # Set a fixed downward-pointing orientation
@@ -213,7 +214,10 @@ class ur5(MujocoEnv):
         object_to_target = self.target_position - tape_roll_pos
 
         ee_vel = self.ee_finger.cvel[3:]
-        tape_roll_vel = self.data.body("tape_roll").cvel[3:]
+        tape_roll_quat = self.tape_roll.xquat, 
+        tr_ang_vel = self.tape_roll.cvel[:3], 
+        tr_lin_vel = self.tape_roll.cvel[3:],
+
 
         obs = np.concatenate(
             [
@@ -222,11 +226,15 @@ class ur5(MujocoEnv):
                 ee_pos,
                 ee_quat,
                 tape_roll_pos,
+
+                tape_roll_quat, 
+                tr_ang_vel,
+                tr_lin_vel, 
+                
                 self.target_position,
                 ee_to_object,
                 object_to_target,
                 ee_vel * 0.1,
-                tape_roll_vel,
                 np.array([float(self.tape_roll_cont("ee_finger"))], dtype=np.float32)
             ]
         )
@@ -343,7 +351,7 @@ class ur5(MujocoEnv):
     class reward_scales:
         ee_to_object: float = -0.10
         obj_to_target: float = -0.10
-        progress: float = 50.0
+        progress: float = 100.0
         contact: float = 10.0
         success: float = 500.0
         velocity_alignment: float = 10.0
@@ -386,7 +394,13 @@ class ur5(MujocoEnv):
             height_penalty = -10.0 * (ee_height - 0.3)   # penalty increases as you go higher
         else:
             height_penalty = 0.0
-        
+
+        z_err = self.des_z - self.tape_roll.xpos[2]
+        z_dev = z_err * z_err
+
+        R_tape    = Rotation.from_quat(self.tape_roll.xquat, scalar_first=True).as_matrix()
+        tilt_sq  = float(R_tape[0, 2]**2 + R_tape[1, 2]**2)  # 0 if upright, grows with tilt
+
         success = obj_to_target < 0.05
 
         return {
@@ -397,7 +411,11 @@ class ur5(MujocoEnv):
             "velocity_alignment": 10.0 * vel_align , #* contact, 
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
+
+            "tape_z_dev": -200.0 * z_dev,
+            "tape_tilt":  -30.0  * tilt_sq,
         }
+    
 
     def get_reward(self):
        return sum(self.reward_dict().values())       
