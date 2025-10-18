@@ -26,6 +26,10 @@ class ur5_callback(BaseCallback):
         # when eval_env is a VecEnv, it does not expose env methods directly.
         # grab the first underlying env to access reward_dict() for the keys.
         base_env = config.eval_env.envs[0] if hasattr(config.eval_env, "envs") else config.eval_env
+        if hasattr(base_env, "unwrapped"):
+            base_env = base_env.unwrapped
+        while hasattr(base_env, "env"):
+            base_env = base_env.env
         base_env.reset()
         reward_dict = base_env.reward_dict()
         # you need a list to store the rewards over time though 
