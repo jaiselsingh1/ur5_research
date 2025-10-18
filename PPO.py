@@ -1,6 +1,6 @@
 import mujoco
 import gymnasium as gym
-import custom_callbacks
+from custom_callbacks import ur5_callback, ur5_callback_config
 
 import ur5_env  # this runs gym.register for UR5-v0
 import ur5_push_env  # for pushing task
@@ -112,6 +112,11 @@ def create_callbacks(config: PPOConfig):
     eval_env = DummyVecEnv([
         lambda: Monitor(gym.make(config.env_id, fix_orientation=config.fix_orientation))  # added fix_orientation
     ])
+
+    reward_eval_env = DummyVecEnv([
+    lambda: Monitor(gym.make(config.env_id, fix_orientation=config.fix_orientation))
+    ])
+
     # eval_env = VecNormalize(
     #     eval_env,
     #     norm_obs=True,
@@ -135,8 +140,19 @@ def create_callbacks(config: PPOConfig):
         log="all",               # log metrics, gradients, model checkpoints
         verbose=2
     )
-    
-    return CallbackList([eval_callback, wandb_callback])
+
+    reward_callback = ur5_callback(ur5_callback_config(
+        eval_env=reward_eval_env,
+        n_eval_episodes=config.eval_episodes,
+        log_freq=config.n_steps,
+        eval_freq=config.eval_freq,
+        deterministic=True,
+        verbose=1,
+        best_model_save_path=config.save_path,
+        render=False,
+    ))
+
+    return CallbackList([eval_callback, wandb_callback, reward_callback])
 
 
 def evaluate_model(model, config: PPOConfig):

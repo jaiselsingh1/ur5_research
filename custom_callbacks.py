@@ -3,7 +3,6 @@ import mujoco
 import gymnasium as gym
 from stable_baselines3.common.callbacks import BaseCallback
 import numpy as np 
-import os
 
 
 class ur5_callback_config(typing.NamedTuple):
@@ -12,10 +11,10 @@ class ur5_callback_config(typing.NamedTuple):
         n_eval_episodes: int
         log_freq: int
         eval_freq: int 
-        deterministic: bool = True 
-        verbose: int = -1
         best_model_save_path: str = ""
+        deterministic: bool = True
         render: bool = False 
+        verbose: int = 1 
 
 class ur5_callback(BaseCallback):
     def __init__(self, config: ur5_callback_config):
@@ -24,8 +23,11 @@ class ur5_callback(BaseCallback):
         self.best_mean_reward = -np.inf 
 
         # reward_scales = self.config.eval_env.reward_scales()
-        config.eval_env.reset()
-        reward_dict = config.eval_env.reward_dict()
+        # when eval_env is a VecEnv, it does not expose env methods directly.
+        # grab the first underlying env to access reward_dict() for the keys.
+        base_env = config.eval_env.envs[0] if hasattr(config.eval_env, "envs") else config.eval_env
+        base_env.reset()
+        reward_dict = base_env.reward_dict()
         # you need a list to store the rewards over time though 
         self.reward_components = {key: [] for key in reward_dict.keys()}
 
@@ -34,13 +36,16 @@ class ur5_callback(BaseCallback):
         if self.n_calls % self.config.log_freq == 0:  
             if 'infos' in self.locals:  # self.locals is a dict that contains the current training steps that is maintained by SB3
                 infos = self.locals['infos']
-
+    
                 for key in self.reward_components.keys():
                     values = [info.get(key, 0.0) for info in infos if key in info]
                     if values:
                         mean_value = np.mean(values)
                         self.reward_components[key].append(mean_value)
                         self.logger.record(f"reward_components/{key}", mean_value)
+
+                # flush logger so these show up in TB/W&B regularly
+                self.logger.dump(self.num_timesteps)
         
         # periodic eval 
         if self.n_calls % self.config.eval_freq == 0:
@@ -49,79 +54,85 @@ class ur5_callback(BaseCallback):
         return True
 
     def _evaluate_agent(self):
-        """run evaluation episodes on the agent and then log the results"""
+        """evaluate the agent and then log the results"""
         episode_rewards = []
         episode_lengths = []
-        episode_successes = []
+        episode_sucesses = []
 
-        ep_component_totals = []
-        # record the component totals per episode (sum over steps and then report per step average)
+        # vectorized env handling (also works for single raw env) 
+        env = self.config.eval_env
+        deterministic = self.config.deterministic
 
-        env = self.config.eval_env 
-        deterministic = self.config.deterministic 
+        # detect number of envs (VecEnv exposes .num_envs)
+        num_envs = getattr(env, "num_envs", 1)
 
-        for _ in range(self.config.n_eval_episodes):
-            obs, info = env.reset()
-            done = False 
-            ep_ret = 0.0 # returns the rewards of the eval episode
-            ep_len = 0
-            last_info = {}
+        # reset (VecEnv returns just obs; raw Gymnasium returns (obs, info))
+        reset_out = env.reset()
+        if isinstance(reset_out, tuple):
+            obs, _info0 = reset_out
+        else:
+            obs = reset_out
 
-            comp_totals = {k: 0.0 for k in self.reward_components.keys()}
+        # running per-env accumulators
+        ep_rets = np.zeros(num_envs, dtype=float)
+        ep_lens = np.zeros(num_envs, dtype=int)
+        comp_totals = [{k: 0.0 for k in self.reward_components.keys()} for _ in range(num_envs)]
 
-            while not done:
-                action, _ = self.model.predict(obs, deterministic=deterministic)
-                obs, reward, terminated, truncated, info = env.step(action)
-                done = bool(terminated or truncated)
+        episodes_done = 0
+        target_episodes = self.config.n_eval_episodes
 
-                ep_ret += float(reward)
-                ep_len += 1
-                last_info = info
+        while episodes_done < target_episodes:
+            # actions from policy
+            actions, _ = self.model.predict(obs, deterministic=deterministic)
 
-                for k in comp_totals.keys():
-                    if k in info:
-                        # info is from the step function that you're returning from 
-                        comp_totals[k] += float(info[k])
+            step_out = env.step(actions)
+            # VecEnv: (obs, rewards, dones, infos)
+            # raw Gymnasium: (obs, reward, terminated, truncated, info)
+            if len(step_out) == 4:
+                obs, rewards, dones, infos = step_out
+                # ensure array shapes
+                rewards = np.array(rewards).reshape(-1)
+                dones = np.array(dones).reshape(-1)
+                infos_list = list(infos) if isinstance(infos, (list, tuple)) else [infos]
+            else:
+                obs, reward, terminated, truncated, info = step_out
+                rewards = np.array([reward], dtype=float)
+                dones = np.array([bool(terminated or truncated)])
+                infos_list = [info]
 
-                if self.config.render:
-                    env.render()
+            # accumulate per-env stats
+            ep_rets[:len(rewards)] += rewards
+            ep_lens[:len(rewards)] += 1
 
-            # totals (append once per episode)
-            episode_rewards.append(ep_ret)
-            episode_lengths.append(ep_len)
-            episode_successes.append(bool(last_info.get("is_success", False)))
-            ep_component_totals.append((comp_totals, ep_len))
+            for i in range(len(infos_list)):
+                info_i = infos_list[i]
+                # accumulate component-wise rewards if present
+                for k in comp_totals[i].keys():
+                    if k in info_i:
+                        comp_totals[i][k] += float(info_i[k])
 
-        # calculate means from all episodes 
+                if dones[i]:
+                    # record episode totals
+                    episode_rewards.append(float(ep_rets[i]))
+                    episode_lengths.append(int(ep_lens[i]))
+                    episode_sucesses.append(bool(info_i.get("is_success", False)))
+                    episodes_done += 1
+                    if episodes_done >= target_episodes:
+                        break
+                    # reset accumulators for that env slot
+                    ep_rets[i] = 0.0
+                    ep_lens[i] = 0
+                    comp_totals[i] = {k: 0.0 for k in self.reward_components.keys()}
+
+        # aggregate results
         mean_reward = float(np.mean(episode_rewards)) if episode_rewards else 0.0
         std_reward = float(np.std(episode_rewards)) if episode_rewards else 0.0
         mean_length = float(np.mean(episode_lengths)) if episode_lengths else 0.0
-        success_rate = float(np.mean(episode_successes)) if episode_successes else 0.0
-        
-        # Component per-step averages (sum over episode / ep_len, then mean across episodes)
-        comp_means = {}
-        for k in self.reward_components.keys():
-            per_ep = []
-            for totals, L in ep_component_totals:
-                if L > 0:
-                    per_ep.append(totals[k] / L)
-            comp_means[k] = float(np.mean(per_ep)) if per_ep else 0.0
+        success_rate = float(np.mean(episode_sucesses)) if episode_sucesses else 0.0
 
-        # Log to SB3's logger
+        # log
         self.logger.record("eval/mean_reward", mean_reward)
         self.logger.record("eval/std_reward", std_reward)
         self.logger.record("eval/mean_ep_length", mean_length)
         self.logger.record("eval/success_rate", success_rate)
-        for k, v in comp_means.items():
-            self.logger.record(f"eval_reward_components/{k}", v)
-
-        # Dump at this timestep (so it appears in TensorBoard/W&B immediately)
         self.logger.dump(self.num_timesteps)
-
-        # Save the best model so far
-        if mean_reward > self.best_mean_reward:
-            self.best_mean_reward = mean_reward
-            if self.config.best_model_save_path:
-                os.makedirs(self.config.best_model_save_path, exist_ok=True)
-                save_path = os.path.join(self.config.best_model_save_path, "best_model")
-                self.model.save(save_path)
