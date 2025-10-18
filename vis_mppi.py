@@ -8,7 +8,7 @@ env = ur5_push_env.ur5(render_mode="human", fix_orientation=True)
 obs, _ = env.reset()
 
 #  # load model
-model = PPO.load("./trained_models/ppo_ur5_bczj0bnm.zip")
+model = PPO.load("./trained_models/ppo_ur5_0y23e7tu.zip")
 # action = np.zeros(6)
 
 for i in range(10000):
@@ -18,7 +18,7 @@ for i in range(10000):
 
     action, _ = model.predict(obs, deterministic=True)
     obs, reward, done, truncated, reward_dict = env.step(action)
-    print(env.tape_roll.xpos[2])
+    print(env.reward_dict())
 
     time.sleep(0.1)
 
