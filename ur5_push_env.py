@@ -399,7 +399,13 @@ class ur5(MujocoEnv):
         z_dev = z_err * z_err
 
         R_tape    = Rotation.from_quat(self.tape_roll.xquat, scalar_first=True).as_matrix()
-        tilt_sq  = float(R_tape[0, 2]**2 + R_tape[1, 2]**2)  # 0 if upright, grows with tilt
+        z_axis = R_tape[:, 2] # tape roll's local z in the world frame 
+        
+        tilt_sq  = float(z_axis[0]**2 + z_axis[1]**2)  # yaw-invariant tilt
+        ang_vel = self.tape_roll.cvel[:3]
+        wx, wy, wz = ang_vel
+
+        tilt_rate_pen = wx*wx + wy*wy
 
         success = obj_to_target < 0.05
 
@@ -414,6 +420,7 @@ class ur5(MujocoEnv):
 
             "tape_z_dev": -100.0 * z_dev,
             "tape_tilt":  -10.0  * tilt_sq,
+            "tilt_rate": -0.02 * tilt_rate_pen
         }
     
 
