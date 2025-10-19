@@ -398,7 +398,7 @@ class ur5(MujocoEnv):
         z_err = self.des_z - self.tape_roll.xpos[2]
         z_dev = z_err * z_err
 
-        R_tape    = Rotation.from_quat(self.tape_roll.xquat, scalar_first=True).as_matrix()
+        R_tape = Rotation.from_quat(self.tape_roll.xquat, scalar_first=True).as_matrix()
         z_axis = R_tape[:, 2] # tape roll's local z in the world frame 
         
         tilt_sq  = float(z_axis[0]**2 + z_axis[1]**2)  # yaw-invariant tilt
