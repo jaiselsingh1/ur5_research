@@ -53,8 +53,8 @@ class MPPI:
         target_pos = rollout_states[:, :, 22:25]
 
         # both are the same size
-        ee_to_obj = np.linalg.norm(tape_pos - ee_pos)
-        obj_to_tar = np.linalg.norm(target_pos - tape_pos)
+        ee_to_obj = np.linalg.norm(tape_pos - ee_pos, axis=-1)
+        obj_to_tar = np.linalg.norm(target_pos - tape_pos, axis=-1)
 
         # instantaneous costs 
         q = 2.0 * ee_to_obj**2 + 10.0 * obj_to_tar**2 
