@@ -128,9 +128,14 @@ class CartesianController(object):
         jac[3:, :] = self.jacr[:, :6]
 
         lam = 1e-2  # damping factor
+        W_pos = 1.0 
+        W_rot = 3.0
+        W = np.diag([W_pos, W_pos, W_pos, W_rot, W_rot, W_rot])
+
+
         JT = jac.T
-        A = JT @ jac + lam * np.eye(6)
-        b = JT @ xdot_des
+        A = JT @ (W @ W) @ jac + lam * np.eye(6)
+        b = JT @ (W @ W) @ xdot_des
         qvel = np.linalg.solve(A, b)
 
         # if self.data.qpos[1] <= self.q_limit:

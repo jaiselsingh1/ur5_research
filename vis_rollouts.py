@@ -8,8 +8,8 @@ from sbx import PPO
 env = ur5_push_env.ur5(render_mode="human", fix_orientation=True)
 obs, _ = env.reset()
 
-#  # load model
-model = PPO.load("./trained_models/ppo_ur5_xg4650m5.zip")
+# load model
+model = PPO.load("./trained_models/ppo_ur5_8uvz4dpp.zip")
 # action = np.zeros(6)
 
 for i in range(10000):
@@ -18,9 +18,9 @@ for i in range(10000):
     
     if i % 100 == 0:
         obs, _ = env.reset()
-        env.data.qpos[9:] = np.array([0.707, 0.0, 0.707, 0.0])
+        # env.data.qpos[9:] = np.array([0.707, 0.0, 0.707, 0.0])
 
-    action, _ = model.predict(obs, deterministic=False)
+    action, _ = model.predict(obs, deterministic=True)
     obs, reward, done, truncated, reward_dict = env.step(action)
     print(env.reward_dict())
 
