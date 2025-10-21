@@ -11,12 +11,12 @@ class MPPI:
     def __init__(
             self, 
             env: MujocoEnv, 
-            num_samples: int = 256, # number of samples 
+            num_samples: int = 5, # number of samples 
             horizon: int = 10, # number of time steps 
             noise_sigma: float = 0.2, 
             phi: float = None, 
             q: float = None, 
-            lambda_: float = 1.0,
+            lambda_: float = 100.0,
     ):
         
         self.num_samples = num_samples
@@ -30,7 +30,7 @@ class MPPI:
         self.model = env.model 
         self.data = env.data
 
-        self.act_dim = 6
+        self.act_dim = env.action_space.shape[0]
         #env.action_space.shape[0]
         # control sequence over the horizon 
         self.U = np.zeros((self.horizon, self.act_dim))
@@ -57,13 +57,14 @@ class MPPI:
         obj_to_tar = np.linalg.norm(target_pos - tape_pos, axis=-1)
 
         # instantaneous costs 
-        q = 2.0 * ee_to_obj**2 + 10.0 * obj_to_tar**2 
+        q = 10.0 * ee_to_obj**2 #+ 10.0 * obj_to_tar**2 
 
         # second component of the S costs (aka control costs)
         # assuming no cross correlations in the noise
-        ctrl_cost = lam * np.sum((noise / self.noise_sigma)**2, axis=-1)  # (K, T, A) -> (K, T)
+        # ctrl_cost = lam * np.sum((noise / self.noise_sigma)**2, axis=-1)  # (K, T, A) -> (K, T)
 
-        S = np.sum(q + ctrl_cost, axis=1) # (K, )
+        S = np.sum(q, axis=1) # + ctrl_cost, axis=1) # (K, )
+        print(S)
 
         # inline terminal cost
         x_t = rollout_states[:, -1, :]
