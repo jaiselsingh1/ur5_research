@@ -418,9 +418,9 @@ class ur5(MujocoEnv):
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
 
-            "tape_z_dev": -1.0 * z_dev,
-            "tape_tilt":  -1.0  * tilt_sq,
-            "tilt_rate": -0.02 * tilt_rate_pen
+            "tape_z_dev": -1.0 * z_dev if z_dev > 0.1 else 0.0,
+            "tape_tilt":  -1.0  * tilt_sq if tilt_sq > 0.3 else 0.0, 
+            # "tilt_rate": -0.02 * tilt_rate_pen
         }
     
 
