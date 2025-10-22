@@ -11,7 +11,8 @@ action[0] = 1.0
 print(action.shape)
 
 for i in range(10000):
-    
+    action = 10 * (env.tape_roll.xpos - env.ee_finger.xpos)
+
     if i % 100 == 0:
         obs, _ = env.reset()
 

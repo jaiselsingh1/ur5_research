@@ -132,7 +132,7 @@ class ur5(MujocoEnv):
         cmd = cc.Command(
             trans_x=np.clip(float(self.ee_target_pos[0]), 0.502 - 0.3, 0.502 + 0.3),
             trans_y=np.clip(float(self.ee_target_pos[1]), -0.6, 0.6),
-            trans_z=float(self.ee_target_pos[2]),  #0.03, 0.3), # changed this to see if it can learn the z orientation 
+            trans_z=np.clip(float(self.ee_target_pos[2]),  0.03, np.inf),  #0.3), # changed this to see if it can learn the z orientation 
             rot_x=float(self.ee_target_quat[1]),
             rot_y=float(self.ee_target_quat[2]),
             rot_z=float(self.ee_target_quat[3]),

@@ -134,8 +134,9 @@ class CartesianController(object):
 
 
         JT = jac.T
-        A = JT @ (W @ W) @ jac + lam * np.eye(6)
-        b = JT @ (W @ W) @ xdot_des
+        W2 = W.T @ W
+        A = JT @ (W2) @ jac + lam * np.eye(6)
+        b = JT @ (W2) @ xdot_des
         qvel = np.linalg.solve(A, b)
 
         # if self.data.qpos[1] <= self.q_limit:
