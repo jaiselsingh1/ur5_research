@@ -235,12 +235,12 @@ class ur5(MujocoEnv):
                 ee_to_object,
                 object_to_target,
                 ee_vel * 0.1,
-                np.array([float(self.tape_roll_cont("ee_finger"))], dtype=np.float32)
+                np.array([self.tape_roll_cont("ee_finger")[0]], dtype=np.float32)
             ]
         )
         return obs.astype(np.float32)
     
-    def tape_roll_cont(self, geom: str):
+    def tape_roll_cont(self, geom: str) -> tuple[bool, float]:
         tape_id = self.tape_roll.id
         geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, geom)
     
@@ -251,9 +251,11 @@ class ur5(MujocoEnv):
             # If tape roll touches something other than the allowed geom(s)
             if (self.model.geom_bodyid[g1] == tape_id and g2 == geom_id) \
             or (self.model.geom_bodyid[g2] == tape_id and g1 == geom_id):
-                return True
+                # import ipdb
+                # ipdb.set_trace()
+                return True, c.pos[2]
             
-        return False
+        return False, 0.0
 
     def reset_random_pose(self, max_iters=1000, tol=1e-5):
         qpos = self.init_qpos.copy()
@@ -378,12 +380,11 @@ class ur5(MujocoEnv):
         # end-effector approaching object
         # ee_approach = self.prev_ee_to_obj - ee_to_obj
 
+        contact, cont_height = self.tape_roll_cont("ee_finger")
         prev_contact = self.prev_contact
-        contact_bool = self.tape_roll_cont("ee_finger")
+        contact_bool = contact and (cont_height < self.tape_roll.xpos[2] + self.model.geom("tape").size[1])
         self.prev_contact = contact_bool
-        contact = float(contact_bool)
 
-        
         vel_align = np.clip(np.dot(obj_vel, target_dir), -1.0, 1.0)
 
         if self.fix_orientation:
@@ -415,7 +416,7 @@ class ur5(MujocoEnv):
         return {
             "ee_height": height_penalty, 
             "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
-            "contact": 2.0 if contact else 0.0, 
+            "contact": 2.0 if contact_bool else 0.0, 
             "progress": 100.0 * progress,
             "velocity_alignment": 10.0 * vel_align, 
 
