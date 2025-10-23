@@ -9,7 +9,7 @@ from dataclasses import dataclass, asdict
 
 # import cc_with_cmd as cc  # Cartesian controller
 import cartesian_controller as cc 
-from scipy.spatial.transform import Rotation 
+
 
 gym.register(
     id="UR5-v1",
@@ -70,6 +70,8 @@ class ur5(MujocoEnv):
         self.tape_roll = self.data.body("tape_roll")
         self.des_z = -0.1175 # based on the xml 
         self.ee_finger = self.data.body("ee_finger")
+
+        self.prev_contact: bool = False
 
         # Set a fixed downward-pointing orientation
         # This creates a quaternion for pointing straight down
@@ -156,9 +158,7 @@ class ur5(MujocoEnv):
         # only step should change the actual env 
         self.prev_tape_roll_pos = prev_tape
         self.prev_ee_to_obj = prev_ee_to_obj
-        # self.prev_tape_roll_pos = self.tape_roll.xpos.copy()
-        # self.prev_ee_to_obj = np.linalg.norm(self.ee_finger.xpos - self.tape_roll.xpos)
-
+        
         tape_roll_xpos = self.tape_roll.xpos
         target_position = self.target_position
         object_to_target_error = np.linalg.norm(tape_roll_xpos - target_position)
@@ -378,7 +378,12 @@ class ur5(MujocoEnv):
         # end-effector approaching object
         # ee_approach = self.prev_ee_to_obj - ee_to_obj
 
-        contact = float(self.tape_roll_cont("ee_finger"))
+        prev_contact = self.prev_contact
+        contact_bool = self.tape_roll_cont("ee_finger")
+        self.prev_contact = contact_bool
+        contact = float(contact_bool)
+
+        
         vel_align = np.clip(np.dot(obj_vel, target_dir), -1.0, 1.0)
 
         if self.fix_orientation:
@@ -405,16 +410,17 @@ class ur5(MujocoEnv):
         ang_vel = self.tape_roll.cvel[:3]
         wx, wy, wz = ang_vel
 
-        tilt_rate_pen = wx*wx + wy*wy
-
         success = obj_to_target < 0.05
 
         return {
             "ee_height": height_penalty, 
             "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
             "contact": 2.0 if contact else 0.0, 
-            "progress": 100.0 * progress, #* contact,
-            "velocity_alignment": 10.0 * vel_align , #* contact, 
+            "progress": 100.0 * progress,
+            "velocity_alignment": 10.0 * vel_align, 
+
+            "continuous contact": 1.0 if contact_bool and prev_contact else 0.0,  # new reward
+
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
 
