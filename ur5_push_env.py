@@ -427,7 +427,7 @@ class ur5(MujocoEnv):
 
             "tape_z_dev": -1.0 * z_dev if z_dev > 0.1 else 0.0,
             "tape_tilt":  -1.0  * tilt_sq if tilt_sq > 0.3 else 0.0, 
-            # "tilt_rate": -0.02 * tilt_rate_pen
+            "tape_angular_vel": -0.1 * np.linalg.norm(ang_vel)
         }
     
 
