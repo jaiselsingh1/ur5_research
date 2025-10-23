@@ -71,7 +71,8 @@ class ur5(MujocoEnv):
         self.des_z = -0.1175 # based on the xml 
         self.ee_finger = self.data.body("ee_finger")
 
-        self.prev_contact: bool = False
+        # self.prev_contact: bool = False
+        self.contact_streak = 0
 
         # Set a fixed downward-pointing orientation
         # This creates a quaternion for pointing straight down
@@ -336,7 +337,7 @@ class ur5(MujocoEnv):
 
         self.set_state(qpos, self.data.qvel)
 
-        if not self.tape_roll_cont("table") and not self.fix_orientation:
+        if not self.tape_roll_cont("table")[0] and not self.fix_orientation:
             self.reset_model()
 
         self.ee_target_pos = self.ee_finger.xpos.copy()
@@ -381,9 +382,15 @@ class ur5(MujocoEnv):
         # ee_approach = self.prev_ee_to_obj - ee_to_obj
 
         contact, cont_height = self.tape_roll_cont("ee_finger")
-        prev_contact = self.prev_contact
+        # prev_contact = self.prev_contact
         contact_bool = contact and (cont_height < self.tape_roll.xpos[2] + self.model.geom("tape").size[1])
-        self.prev_contact = contact_bool
+        # self.prev_contact = contact_bool
+
+        self.contact_streak = getattr(self, "contact_streak", 0)
+        if contact_bool:
+            self.contact_streak = min(self.contact_streak + 1, 1000)
+        else:
+            self.contact_streak = 0
 
         vel_align = np.clip(np.dot(obj_vel, target_dir), -1.0, 1.0)
 
@@ -409,19 +416,19 @@ class ur5(MujocoEnv):
         
         tilt_sq  = float(z_axis[0]**2 + z_axis[1]**2)  # yaw-invariant tilt
         ang_vel = self.tape_roll.cvel[:3]
-        wx, wy, wz = ang_vel
 
         success = obj_to_target < 0.05
 
         return {
             "ee_height": height_penalty, 
-            "ee_distance": - 10.0 * ee_to_obj * (1.0 - contact),
+            "ee_distance": - 10.0 * ee_to_obj * (1.0 - float(contact_bool)),
             "contact": 2.0 if contact_bool else 0.0, 
             "progress": 100.0 * progress,
             "velocity_alignment": 10.0 * vel_align, 
-
-            "continuous contact": 1.0 if contact_bool and prev_contact else 0.0,  # new reward
-
+            
+            "continuous contact": 0.05 * min(self.contact_streak, 60), # should cap at 3.0 
+            # "continuous contact": 1.0 if contact_bool and prev_contact else 0.0, 
+             
             "success": 500.0 if success else 0.0,
             "orientation": -0.01 * ang_err,
 
