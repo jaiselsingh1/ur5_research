@@ -8,10 +8,12 @@ env = ur5.ur5(render_mode="human", fix_orientation=True)
 
 action = np.zeros(env.action_space.shape, dtype=np.float64)
 action[0] = 1.0 
-print(action.shape)
+action[1] = 1.0
+
+# 0.502 0.0 -0.18
+# size 0.3 0.6 0.03
 
 for i in range(10000):
-    action = 10 * (env.tape_roll.xpos - env.ee_finger.xpos)
 
     if i % 100 == 0:
         obs, _ = env.reset()

@@ -30,7 +30,7 @@ class CartesianController(object):
     """
 
     def __init__(
-        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.01, 1.0], gains=[0.3, 10.0]  # kinematics, 
+        self, mj_model: mj.MjModel, mj_data: mj.MjData, max_vel=[0.5, 1.0], gains=[5.0, 5.0]  # kinematics, 
     ):
         self.model = mj_model
         self.data = mj_data
@@ -119,6 +119,9 @@ class CartesianController(object):
          # convert difference in postions/rot into target vels 
         x_diff = target_xpos - xpos 
         dx_des = (x_diff / self.model.opt.timestep) * self.trans_gain
+        vel_norm = np.linalg.norm(dx_des)
+        if vel_norm > self.max_vel_trans:
+            dx_des = dx_des/vel_norm * self.max_vel_trans
 
         xdot_des = np.concatenate([dx_des, rvec])
 
@@ -127,7 +130,7 @@ class CartesianController(object):
         jac[:3, :] = self.jacp[:, :6]
         jac[3:, :] = self.jacr[:, :6]
 
-        lam = 1e-2  # damping factor
+        lam = 1e-3  # damping factor
         W_pos = 1.0 
         W_rot = 3.0
         W = np.diag([W_pos, W_pos, W_pos, W_rot, W_rot, W_rot])
