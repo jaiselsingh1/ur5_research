@@ -12,6 +12,8 @@ wandb/
 tensorboard_log/
 logs/
 
+# misc 
+saved_data/
 
 trained_models.zip
 ur5_policy.mp4
