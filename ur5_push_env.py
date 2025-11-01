@@ -73,6 +73,8 @@ class ur5(MujocoEnv):
 
         # self.prev_contact: bool = False
         self.contact_streak = 0
+        # for logging 
+        self.last_dq_cmd = np.zeros(6, dtype=np.float64)
 
         # Set a fixed downward-pointing orientation
         # This creates a quaternion for pointing straight down
@@ -148,6 +150,8 @@ class ur5(MujocoEnv):
             dq = self.cartesian_controller.cartesian_command(q_current, cmd)
             dq = np.clip(dq, -self.act_rng, self.act_rng)
             self.do_simulation(dq, 1)
+        # expose the last dq to the logger 
+        self.last_dq_cmd = dq
 
         if self.render_mode == "human":
             self.render()
