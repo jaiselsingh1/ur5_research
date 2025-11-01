@@ -25,7 +25,22 @@ class TrajMeta:
 
 
 class TrajectoryWriter:
-    """Handles writing trajectories in the required format."""
+    """Handles writing trajectories in required format
+    
+    Format per trajectory:
+    dataset_root/
+    └── traj_0001/              # One folder per trajectory
+        ├── ee_pos_actions.npz  # All .npz files at root of traj folder
+        ├── ee_pos_commands.npz
+        ├── ee_pos_states.npz
+        ├── joint_value_states.npz
+        ├── joint_vel_commands.npz
+        ├── obj_pos_states.npz
+        ├── meta.yaml
+        └── cam0/               # Optional: images/videos
+            ├── test_render_*.png
+            └── __combined.mp4
+    """
     
     def __init__(self, root_dir: str, dataset_name: str, start_idx: int = 1):
         self.root = Path(root_dir)
@@ -38,11 +53,11 @@ class TrajectoryWriter:
         
         # Buffers for current trajectory
         self.ee_pos_states = []
-        self.ee_pos_actions = []  # Cartesian commands (x, y, z)
-        self.ee_pos_commands = []  # Same as actions but explicitly named
+        self.ee_pos_actions = []
+        self.ee_pos_commands = []
         self.obj_pos_states = []
-        self.joint_value_states = []  # qpos[:6]
-        self.joint_vel_commands = []  # dq from controller
+        self.joint_value_states = []
+        self.joint_vel_commands = []
         self.rewards = []
         
     def start_traj(self):
@@ -87,30 +102,52 @@ class TrajectoryWriter:
         self.rewards.append(float(reward))
         
     def finish_traj(self, meta: TrajMeta) -> Path:
-        """Save trajectory data and metadata."""
+        """Save trajectory data and metadata in Lennart's format."""
         if self.current_traj_dir is None:
             raise RuntimeError("No trajectory in progress")
         
         # Convert lists to numpy arrays
-        arrays = {
-            'ee_pos_states': np.array(self.ee_pos_states, dtype=np.float32),  # (T, 3)
-            'ee_pos_actions': np.array(self.ee_pos_actions, dtype=np.float32),  # (T, 3)
-            'ee_pos_commands': np.array(self.ee_pos_commands, dtype=np.float32),  # (T, 3)
-            'obj_pos_states': np.array(self.obj_pos_states, dtype=np.float32),  # (T, 3)
-            'joint_value_states': np.array(self.joint_value_states, dtype=np.float32),  # (T, 6)
-            'joint_vel_commands': np.array(self.joint_vel_commands, dtype=np.float32),  # (T, 6)
-            'rewards': np.array(self.rewards, dtype=np.float32),  # (T,)
-        }
+        ee_pos_states = np.array(self.ee_pos_states, dtype=np.float64)  # (T, 3)
+        ee_pos_actions = np.array(self.ee_pos_actions, dtype=np.float64)  # (T, 3)
+        ee_pos_commands = np.array(self.ee_pos_commands, dtype=np.float64)  # (T, 3)
+        obj_pos_states = np.array(self.obj_pos_states, dtype=np.float64)  # (T, 3)
+        joint_value_states = np.array(self.joint_value_states, dtype=np.float64)  # (T, 6)
+        joint_vel_commands = np.array(self.joint_vel_commands, dtype=np.float64)  # (T, 6)
+        rewards = np.array(self.rewards, dtype=np.float64)  # (T,)
         
         # Calculate total reward for metadata
-        meta.total_reward = float(np.sum(arrays['rewards']))
+        meta.total_reward = float(np.sum(rewards))
         
-        # Save arrays as compressed .npz files
-        for name, arr in arrays.items():
-            np.savez_compressed(
-                self.current_traj_dir / f"{name}.npz",
-                data=arr
-            )
+        # Save arrays as compressed .npz files WITHOUT nested 'data' key
+        # Lennart's format: each .npz contains the array directly as the primary key
+        np.savez_compressed(
+            self.current_traj_dir / "ee_pos_states.npz",
+            ee_pos_states=ee_pos_states
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "ee_pos_actions.npz",
+            ee_pos_actions=ee_pos_actions
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "ee_pos_commands.npz",
+            ee_pos_commands=ee_pos_commands
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "obj_pos_states.npz",
+            obj_pos_states=obj_pos_states
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "joint_value_states.npz",
+            joint_value_states=joint_value_states
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "joint_vel_commands.npz",
+            joint_vel_commands=joint_vel_commands
+        )
+        np.savez_compressed(
+            self.current_traj_dir / "rewards.npz",
+            rewards=rewards
+        )
         
         # Save metadata as YAML
         meta_dict = asdict(meta)
@@ -137,11 +174,13 @@ class TrajectoryReader:
         with open(traj_dir / "meta.yaml", 'r') as f:
             meta = yaml.safe_load(f)
         
-        # Load arrays
+        # Load arrays - Lennart's format uses array name as key, not 'data'
         data = {}
         for npz_file in traj_dir.glob("*.npz"):
-            name = npz_file.stem
-            data[name] = np.load(npz_file)['data']
+            name = npz_file.stem  # e.g., 'ee_pos_states'
+            loaded = np.load(npz_file)
+            # The key in the .npz matches the filename
+            data[name] = loaded[name]
         
         return {'meta': meta, 'data': data}
     
