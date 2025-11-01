@@ -18,9 +18,10 @@ gym.register(
 )
 
 class ur5(MujocoEnv):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 50}
+    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 10}
 
-    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=10, fix_orientation = True, **kwargs):
+    def __init__(self, model_path="./env/assets/scene.xml", frame_skip=50, fix_orientation = True, **kwargs):
+        # changed the frame_skip to match the control freq of 10 Hz (1 / 50 * 0.002) = 10 
         super().__init__(
             model_path,
             frame_skip,
