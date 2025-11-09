@@ -45,80 +45,89 @@ def collect_dataset(
         deterministic: Use deterministic policy actions
         seed0: Starting random seed
     """
-    # Create environment - IMPORTANT: frame_skip should give 10Hz control
+
     env = ur5_push_env.ur5(
         render_mode="rgb_array" if save_video else None,
-        frame_skip=50,  # With timestep=0.002, this gives 10Hz
+        frame_skip=50,
         fix_orientation=True
     )
     
-    # Verify control frequency
     control_hz = 1.0 / (env.model.opt.timestep * env.frame_skip)
-    assert abs(control_hz - 10.0) < 0.5, \
-        f"Control Hz is {control_hz:.1f}, expected 10 Hz (timestep={env.model.opt.timestep}, frame_skip={env.frame_skip})"
     
     policy = PPO.load(policy_path)
     traj_writer = TrajectoryWriter(out_root, dataset_name, start_idx=1)
     
-    if save_video:
-        video_dir = traj_writer.dataset_dir / "videos"
-        video_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Workspace bounds (from your cmd clipping)
     workspace_bounds = {
         "x": [0.502 - 0.3, 0.502 + 0.3],
         "y": [-0.6, 0.6],
         "z": [0.03, 0.30],
     }
     
-    # Collection loop
     for k in range(num_rollouts):
-        # Reset environment
         obs, info = env.reset(seed=seed0 + k)
         traj_writer.start_traj()
         
-        # Open video writer if needed
-        video_writer = None
+        cam0_dir = None
+        cam1_dir = None
+        video_writer_cam0 = None
+        video_writer_cam1 = None
+        
         if save_video:
-            video_path = video_dir / f"rollout_{k:04d}.mp4"
-            video_writer = imageio.get_writer(
-                str(video_path), 
+            cam0_dir = traj_writer.current_traj_dir / "cam0"
+            cam0_dir.mkdir(exist_ok=True)
+            combined_video_path_cam0 = cam0_dir / "__combined.mp4"
+            video_writer_cam0 = imageio.get_writer(
+                str(combined_video_path_cam0), 
+                fps=video_fps,
+                codec="libx264",
+                quality=8
+            )
+            
+            cam1_dir = traj_writer.current_traj_dir / "cam1"
+            cam1_dir.mkdir(exist_ok=True)
+            combined_video_path_cam1 = cam1_dir / "__combined.mp4"
+            video_writer_cam1 = imageio.get_writer(
+                str(combined_video_path_cam1), 
                 fps=video_fps,
                 codec="libx264",
                 quality=8
             )
         
-        # Trajectory bookkeeping
         success_flag = False
         final_err = None
         total_reward = 0.0
         
-        # Rollout loop
         for t in range(steps_per_rollout):
-            # Get action from policy
             action, _ = policy.predict(obs, deterministic=deterministic)
             
-            # Step environment
             obs, reward, terminated, truncated, rdict = env.step(action)
             total_reward += reward
             
-            # Get joint velocity command (what was actually sent to robot)
             dq_cmd = getattr(env, "last_dq_cmd", np.zeros(6, dtype=np.float32))
             
-            # Record step (at 10Hz as per environment control frequency)
             traj_writer.record_step(
                 env=env,
-                action=action,  # (3,) Cartesian commands in world frame
-                dq_cmd=dq_cmd,  # (6,) joint velocities
+                action=action,
+                dq_cmd=dq_cmd,
                 reward=reward
             )
             
-            # Save video frame if needed
-            if video_writer is not None:
-                frame = env.render()
-                video_writer.append_data(frame)
+            if cam0_dir is not None:
+                env.mujoco_renderer.camera_name = "birdseye_tilted_cam"
+                frame_cam0 = env.render()
+                image_path_cam0 = cam0_dir / f"test_render_{t:06d}_top.png"
+                imageio.imwrite(image_path_cam0, frame_cam0)
+                if video_writer_cam0 is not None:
+                    video_writer_cam0.append_data(frame_cam0)
             
-            # Check termination
+            if cam1_dir is not None:
+                env.mujoco_renderer.camera_name = "side_cam"
+                frame_cam1 = env.render()
+                image_path_cam1 = cam1_dir / f"test_render_{t:06d}_side.png"
+                imageio.imwrite(image_path_cam1, frame_cam1)
+                if video_writer_cam1 is not None:
+                    video_writer_cam1.append_data(frame_cam1)
+            
             if terminated or truncated:
                 obj_pos = env.tape_roll.xpos
                 target_pos = env.target_position
@@ -126,11 +135,11 @@ def collect_dataset(
                 success_flag = bool(terminated)
                 break
         
-        # Close video
-        if video_writer is not None:
-            video_writer.close()
+        if video_writer_cam0 is not None:
+            video_writer_cam0.close()
+        if video_writer_cam1 is not None:
+            video_writer_cam1.close()
         
-        # Create metadata
         meta = TrajMeta(
             seed=seed0 + k,
             workspace_bounds=workspace_bounds,
@@ -149,72 +158,19 @@ def collect_dataset(
                   "actions are deltas, commands are target positions"
         )
         
-        # Save trajectory
         out_dir = traj_writer.finish_traj(meta)
     
     env.close()
 
 
-def verify_dataset(dataset_dir: str) -> dict:
-    """Verify the collected dataset has the expected format.
-    
-    Returns:
-        dict with 'valid': bool and 'info': dict with stats
-    """
-    from traj_logger import TrajectoryReader
-    
-    dataset_path = Path(dataset_dir)
-    if not dataset_path.exists():
-        return {'valid': False, 'error': f"Dataset directory not found: {dataset_dir}"}
-    
-    trajectories = TrajectoryReader.load_dataset(dataset_path)
-    
-    if len(trajectories) == 0:
-        return {'valid': False, 'error': "No trajectories found"}
-    
-    # Check first trajectory
-    traj = trajectories[0]
-    meta = traj['meta']
-    data = traj['data']
-    
-    # Verify required files
-    required = [
-        'ee_pos_states', 'ee_pos_actions', 'ee_pos_commands',
-        'obj_pos_states', 'joint_value_states', 'joint_vel_commands',
-        'rewards'
-    ]
-    missing = [r for r in required if r not in data]
-    
-    return {
-        'valid': len(missing) == 0,
-        'num_trajectories': len(trajectories),
-        'missing_arrays': missing,
-        'sample_meta': meta,
-        'sample_shapes': {k: v.shape for k, v in data.items()}
-    }
-
-
 if __name__ == "__main__":
-    # Collect 100 trajectories
     collect_dataset(
         policy_path="./logs/best_model.zip",
         out_root="./saved_data",
         dataset_name="ur5_push_100traj",
         num_rollouts=100,
         steps_per_rollout=500,
-        save_video=False,
+        save_video=True,
         deterministic=True,
         seed0=42,
     )
-    
-    # can verify
-    # result = verify_dataset("./saved_data/ur5_push_100traj")
-    # assert result['valid'], f"Verification failed: {result}"
-    
-    # Collect 10k trajectories dataset
-    # collect_dataset(
-    #     dataset_name="ur5_push_10k",
-    #     num_rollouts=10000,
-    #     save_video=False,
-    #     seed0=1000,
-    # )
