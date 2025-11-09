@@ -52,7 +52,6 @@ class ur5(MujocoEnv):
         self.ee_target_pos = self.data.body("ee_finger").xpos.copy()
         self.ee_target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # identity quaternion
 
-
         self.target_body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "target_marker")
         self.target_position = self.set_target_pos(default=False)
         self._move_target_marker(self.target_position)
@@ -86,7 +85,6 @@ class ur5(MujocoEnv):
         self.model.body_pos[self.target_body_id] = np.asarray(target_position, dtype=np.float64)
         mujoco.mj_forward(self.model, self.data)
 
-
     def _normalize_quaternion(self, quat):
         """Ensure quaternion is normalized and handle edge cases"""
         quat = np.array(quat, dtype=np.float64)
@@ -112,7 +110,6 @@ class ur5(MujocoEnv):
         # this way the target keeps accumulating 
         # self.ee_target_pos = self.ee_target_pos + delta_pos
         self.ee_target_pos = self.ee_finger.xpos.copy() + delta_pos
-
 
         # print(self.ee_target_quat, self.ee_finger.xquat.copy())
         # Convert back to quaternion and normalize

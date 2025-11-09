@@ -1,16 +1,16 @@
 """
 Data collection script for UR5 push environment.
-Generates datasets in the format specified by Lennart Schulze.
 
 Each trajectory includes:
 - ee_pos_states.npz: End-effector positions (T, 3)
-- ee_pos_actions.npz: Policy actions = Cartesian commands (T, 3)
-- ee_pos_commands.npz: Same as actions (T, 3)
+- ee_pos_actions.npz: Deltas = commands - states (T, 3)
+- ee_pos_commands.npz: Cartesian commands from policy (T, 3)
 - obj_pos_states.npz: Object positions (T, 3)
 - joint_value_states.npz: Joint positions (T, 6)
 - joint_vel_commands.npz: Joint velocity commands from controller (T, 6)
 - rewards.npz: Per-step rewards (T,)
 - meta.yaml: Trajectory metadata
+- cam0/, cam1/: Images from two camera views (optional)
 """
 
 from pathlib import Path
@@ -35,59 +35,75 @@ def collect_dataset(
     """Collect trajectories from a trained policy.
     
     Args:
-        policy_path: Path to trained policy checkpoint
-        out_root: Root directory for saved data
-        dataset_name: Name of this dataset (creates a subfolder)
+        policy_path: Path to trained PPO model
+        out_root: Root directory for datasets
+        dataset_name: Name of this dataset
         num_rollouts: Number of trajectories to collect
         steps_per_rollout: Max steps per trajectory
-        save_video: Whether to save videos (not required per conversation)
-        video_fps: Video frame rate (should match control_hz = 10)
+        save_video: If True, save images to cam0/ and cam1/ folders
+        video_fps: FPS for combined video (should be 10 Hz)
         deterministic: Use deterministic policy actions
-        seed0: Starting random seed
+        seed0: Starting seed (increments for each rollout)
     """
-
+    
     env = ur5_push_env.ur5(
         render_mode="rgb_array" if save_video else None,
         frame_skip=50,
-        fix_orientation=True
+        fix_orientation=True,
+        width=1280,  # Use 1280x720 resolution
+        height=720
     )
     
     control_hz = 1.0 / (env.model.opt.timestep * env.frame_skip)
     
     policy = PPO.load(policy_path)
-    traj_writer = TrajectoryWriter(out_root, dataset_name, start_idx=1)
     
+    # Workspace bounds from environment
     workspace_bounds = {
         "x": [0.502 - 0.3, 0.502 + 0.3],
         "y": [-0.6, 0.6],
         "z": [0.03, 0.30],
     }
     
+    traj_writer = TrajectoryWriter(
+        root_dir=out_root,
+        dataset_name=dataset_name,
+        start_idx=1
+    )
+        
     for k in range(num_rollouts):
-        obs, info = env.reset(seed=seed0 + k)
+        seed = seed0 + k
+        obs, info = env.reset(seed=seed)
+        
         traj_writer.start_traj()
         
+        # hide target position by setting geom alpha = 0 
+        if save_video:
+            # Disable target visualization if it exists
+            target_geom_id = env.model.geom("target_position").id if "target_position" in [env.model.geom(i).name for i in range(env.model.ngeom)] else None
+            if target_geom_id is not None:
+                env.model.geom_rgba[target_geom_id, 3] = 0.0  # Set alpha to 0
+        
+        # Setup video writers for two camera views
+        cam0_vw = None
+        cam1_vw = None
         cam0_dir = None
         cam1_dir = None
-        video_writer_cam0 = None
-        video_writer_cam1 = None
         
         if save_video:
             cam0_dir = traj_writer.current_traj_dir / "cam0"
+            cam1_dir = traj_writer.current_traj_dir / "cam1"
             cam0_dir.mkdir(exist_ok=True)
-            combined_video_path_cam0 = cam0_dir / "__combined.mp4"
-            video_writer_cam0 = imageio.get_writer(
-                str(combined_video_path_cam0), 
+            cam1_dir.mkdir(exist_ok=True)
+            
+            cam0_vw = imageio.get_writer(
+                cam0_dir / "__combined.mp4",
                 fps=video_fps,
                 codec="libx264",
                 quality=8
             )
-            
-            cam1_dir = traj_writer.current_traj_dir / "cam1"
-            cam1_dir.mkdir(exist_ok=True)
-            combined_video_path_cam1 = cam1_dir / "__combined.mp4"
-            video_writer_cam1 = imageio.get_writer(
-                str(combined_video_path_cam1), 
+            cam1_vw = imageio.get_writer(
+                cam1_dir / "__combined.mp4",
                 fps=video_fps,
                 codec="libx264",
                 quality=8
@@ -95,82 +111,93 @@ def collect_dataset(
         
         success_flag = False
         final_err = None
-        total_reward = 0.0
         
         for t in range(steps_per_rollout):
             action, _ = policy.predict(obs, deterministic=deterministic)
             
-            obs, reward, terminated, truncated, rdict = env.step(action)
-            total_reward += reward
+            # Store EE position before step (for computing deltas)
+            ee_pos_before = env.ee_finger.xpos.copy()
             
-            dq_cmd = getattr(env, "last_dq_cmd", np.zeros(6, dtype=np.float32))
+            obs, reward, terminated, truncated, info = env.step(action)
             
+            # Store EE position after step
+            ee_pos_after = env.ee_finger.xpos.copy()
+            
+            # Get joint velocity command from controller
+            dq_cmd = env.last_dq_cmd if hasattr(env, 'last_dq_cmd') else np.zeros(6)
+            
+            # ee_pos_actions: commands - states
+            # The policy outputs a command (target position or delta)
+            # We need to extract what the command actually was
+            # If fix_orientation=True, action is (3,) representing desired EE position change
+            ee_pos_command = action[:3] if len(action) >= 3 else action
+            
+            # Record step with proper action calculation
             traj_writer.record_step(
                 env=env,
-                action=action,
+                action=ee_pos_command,  # Policy command
+                ee_pos_before=ee_pos_before,  # For computing actual delta
+                ee_pos_after=ee_pos_after,
                 dq_cmd=dq_cmd,
                 reward=reward
             )
             
-            if cam0_dir is not None:
-                env.mujoco_renderer.camera_name = "birdseye_tilted_cam"
-                frame_cam0 = env.render()
-                image_path_cam0 = cam0_dir / f"test_render_{t:06d}_top.png"
-                imageio.imwrite(image_path_cam0, frame_cam0)
-                if video_writer_cam0 is not None:
-                    video_writer_cam0.append_data(frame_cam0)
-            
-            if cam1_dir is not None:
+            # Save images from both camera views at 10Hz 
+            if save_video:
+                # side camera
                 env.mujoco_renderer.camera_name = "side_cam"
+                frame_cam0 = env.render()
+                imageio.imwrite(
+                    cam0_dir / f"test_render_{t:06d}_side.png",
+                    frame_cam0
+                )
+                cam0_vw.append_data(frame_cam0)
+                
+                # birdseye tilted camera 
+                env.mujoco_renderer.camera_name = "birdseye_tilted_cam"
                 frame_cam1 = env.render()
-                image_path_cam1 = cam1_dir / f"test_render_{t:06d}_side.png"
-                imageio.imwrite(image_path_cam1, frame_cam1)
-                if video_writer_cam1 is not None:
-                    video_writer_cam1.append_data(frame_cam1)
+                imageio.imwrite(
+                    cam1_dir / f"test_render_{t:06d}_birdseye.png",
+                    frame_cam1
+                )
+                cam1_vw.append_data(frame_cam1)
             
             if terminated or truncated:
-                obj_pos = env.tape_roll.xpos
-                target_pos = env.target_position
-                final_err = float(np.linalg.norm(obj_pos - target_pos))
                 success_flag = bool(terminated)
+                final_err = float(info.get('final_distance', -1.0))
                 break
         
-        if video_writer_cam0 is not None:
-            video_writer_cam0.close()
-        if video_writer_cam1 is not None:
-            video_writer_cam1.close()
+        # Close video writers
+        if save_video:
+            cam0_vw.close()
+            cam1_vw.close()
         
         meta = TrajMeta(
-            seed=seed0 + k,
+            seed=seed,
             workspace_bounds=workspace_bounds,
-            target_position=list(env.target_position.astype(float)),
+            target_position=[float(x) for x in env.target_position],  # Convert to native list
             control_hz=float(control_hz),
             env_id="UR5-v1",
-            policy_tag=Path(policy_path).stem,
+            policy_tag=Path(policy_path).name,
             reward_version="v0.1",
             sim_timestep=float(env.model.opt.timestep),
             frame_skip=int(env.frame_skip),
             success=success_flag,
-            final_obj_to_target=(final_err if final_err is not None else -1.0),
-            steps=t + 1,
-            total_reward=total_reward,
-            notes="Commands are Cartesian EE positions (x,y,z) in world frame; " \
-                  "actions are deltas, commands are target positions"
+            final_obj_to_target=float(final_err) if final_err is not None else -1.0,
+            steps=t + 1 if 't' in locals() else 0,
+            notes="",
         )
         
         out_dir = traj_writer.finish_traj(meta)
     
     env.close()
 
-
 if __name__ == "__main__":
     collect_dataset(
         policy_path="./logs/best_model.zip",
         out_root="./saved_data",
-        dataset_name="ur5_push_100traj",
-        num_rollouts=100,
-        steps_per_rollout=500,
+        dataset_name="ur5_push_test",
+        num_rollouts=10,
         save_video=True,
-        deterministic=True,
-        seed0=42,
+        deterministic=True
     )

@@ -39,9 +39,8 @@
 
     <!--target position-->
     <body name="target_marker" pos="0.7 0.2 -0.1175">
-      <geom name="target" type="cylinder" size="0.03 0.01" rgba="1.0 0.0 0.0 0.8" contype="0" conaffinity="0"/>
+      <geom name="target" type="cylinder" size="0.03 0.01" rgba="0.0 0.0 0.0 0.0" contype="0" conaffinity="0"/>
     </body>
-
 
     <body pos="0.502 0.0 -0.18">
       <geom name="table" type="box" size="0.3 0.6 0.03" mass="2.7" rgba="0.5 0.5 0.5 0.3" condim="6"/>
