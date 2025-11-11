@@ -120,7 +120,9 @@ def collect_dataset(
             
             # Convert policy delta to absolute commanded position
             # Policy outputs deltas, so commanded position = current + delta
-            ee_pos_command = ee_pos_before + action[:3]
+            # Get the actual delta that will be applied
+            scaled_delta = action[:3] * env.max_delta_pos
+            ee_pos_command = ee_pos_before + scaled_delta
             
             obs, reward, terminated, truncated, info = env.step(action)
             
