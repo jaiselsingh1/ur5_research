@@ -2,20 +2,21 @@
 Data collection script for UR5 push environment.
 
 Each trajectory includes:
-- ee_pos_states.npz: End-effector positions (T, 3)
-- ee_pos_actions.npz: Deltas = commands - states (T, 3)
-- ee_pos_commands.npz: Cartesian commands from policy (T, 3)
+- ee_pos_states.npz: End-effector positions after each step (T, 3)
+- ee_pos_actions.npz: Tracking error = commands - states (T, 3)
+- ee_pos_commands.npz: Absolute Cartesian commands from policy (T, 3)
 - obj_pos_states.npz: Object positions (T, 3)
 - joint_value_states.npz: Joint positions (T, 6)
 - joint_vel_commands.npz: Joint velocity commands from controller (T, 6)
 - rewards.npz: Per-step rewards (T,)
 - meta.yaml: Trajectory metadata
-- cam0/, cam1/: Images from two camera views (optional)
+- cam0/, cam1/: Images from two camera views 
 """
 
 from pathlib import Path
 import imageio
 import numpy as np
+import mujoco
 from sbx import PPO
 import ur5_push_env
 from traj_logger import TrajectoryWriter, TrajMeta
@@ -27,7 +28,7 @@ def collect_dataset(
     dataset_name: str = "ur5_push_100traj",
     num_rollouts: int = 100,
     steps_per_rollout: int = 500,
-    save_video: bool = False,
+    save_video: bool = True,
     video_fps: int = 10,
     deterministic: bool = True,
     seed0: int = 42,
@@ -41,7 +42,7 @@ def collect_dataset(
         num_rollouts: Number of trajectories to collect
         steps_per_rollout: Max steps per trajectory
         save_video: If True, save images to cam0/ and cam1/ folders
-        video_fps: FPS for combined video (should be 10 Hz)
+        video_fps: FPS for combined video (should match control_hz = 10 Hz)
         deterministic: Use deterministic policy actions
         seed0: Starting seed (increments for each rollout)
     """
@@ -50,7 +51,7 @@ def collect_dataset(
         render_mode="rgb_array" if save_video else None,
         frame_skip=50,
         fix_orientation=True,
-        width=1280,  # Use 1280x720 resolution
+        width=1280,
         height=720
     )
     
@@ -77,11 +78,10 @@ def collect_dataset(
         
         traj_writer.start_traj()
         
-        # hide target position by setting geom alpha = 0 
+        # Hide target marker by setting geom alpha to 0
         if save_video:
-            # Disable target visualization if it exists
-            target_geom_id = env.model.geom("target_position").id if "target_position" in [env.model.geom(i).name for i in range(env.model.ngeom)] else None
-            if target_geom_id is not None:
+            target_geom_id = mujoco.mj_name2id(env.model, mujoco.mjtObj.mjOBJ_GEOM, "target_marker")
+            if target_geom_id >= 0:
                 env.model.geom_rgba[target_geom_id, 3] = 0.0  # Set alpha to 0
         
         # Setup video writers for two camera views
@@ -115,8 +115,12 @@ def collect_dataset(
         for t in range(steps_per_rollout):
             action, _ = policy.predict(obs, deterministic=deterministic)
             
-            # Store EE position before step (for computing deltas)
+            # Store EE position before step
             ee_pos_before = env.ee_finger.xpos.copy()
+            
+            # Convert policy delta to absolute commanded position
+            # Policy outputs deltas, so commanded position = current + delta
+            ee_pos_command = ee_pos_before + action[:3]
             
             obs, reward, terminated, truncated, info = env.step(action)
             
@@ -126,26 +130,23 @@ def collect_dataset(
             # Get joint velocity command from controller
             dq_cmd = env.last_dq_cmd if hasattr(env, 'last_dq_cmd') else np.zeros(6)
             
-            # ee_pos_actions: commands - states
-            # The policy outputs a command (target position or delta)
-            # We need to extract what the command actually was
-            # If fix_orientation=True, action is (3,) representing desired EE position change
-            ee_pos_command = action[:3] if len(action) >= 3 else action
-            
-            # Record step with proper action calculation
+            # Record step with absolute commanded position
             traj_writer.record_step(
                 env=env,
-                action=ee_pos_command,  # Policy command
-                ee_pos_before=ee_pos_before,  # For computing actual delta
-                ee_pos_after=ee_pos_after,
+                ee_pos_command=ee_pos_command,  # Absolute commanded position
+                ee_pos_after=ee_pos_after,       # Actual position after step
                 dq_cmd=dq_cmd,
                 reward=reward
             )
             
+            # get camera ids 
+            side_cam_id = mujoco.mj_name2id(env.model, mujoco.mjtObj.mjOBJ_CAMERA, "side_cam")
+            birdseye_cam_id = mujoco.mj_name2id(env.model, mujoco.mjtObj.mjOBJ_CAMERA, "birdseye_tilted_cam")
+            
             # Save images from both camera views at 10Hz 
             if save_video:
-                # side camera
-                env.mujoco_renderer.camera_name = "side_cam"
+                # Camera 0: side view
+                env.mujoco_renderer.camera_id = side_cam_id
                 frame_cam0 = env.render()
                 imageio.imwrite(
                     cam0_dir / f"test_render_{t:06d}_side.png",
@@ -153,8 +154,8 @@ def collect_dataset(
                 )
                 cam0_vw.append_data(frame_cam0)
                 
-                # birdseye tilted camera 
-                env.mujoco_renderer.camera_name = "birdseye_tilted_cam"
+                # Camera 1: birdseye tilted view
+                env.mujoco_renderer.camera_id = birdseye_cam_id
                 frame_cam1 = env.render()
                 imageio.imwrite(
                     cam1_dir / f"test_render_{t:06d}_birdseye.png",
@@ -172,10 +173,13 @@ def collect_dataset(
             cam0_vw.close()
             cam1_vw.close()
         
+        # Convert target_position to native Python list (not numpy array)
+        target_pos_list = tuple(float(x) for x in env.target_position)
+        
         meta = TrajMeta(
             seed=seed,
             workspace_bounds=workspace_bounds,
-            target_position=[float(x) for x in env.target_position],  # Convert to native list
+            target_position=list(target_pos_list),  # Native Python list
             control_hz=float(control_hz),
             env_id="UR5-v1",
             policy_tag=Path(policy_path).name,
@@ -187,10 +191,13 @@ def collect_dataset(
             steps=t + 1 if 't' in locals() else 0,
             notes="",
         )
-        
+
         out_dir = traj_writer.finish_traj(meta)
+        
     
     env.close()
+    
+
 
 if __name__ == "__main__":
     collect_dataset(

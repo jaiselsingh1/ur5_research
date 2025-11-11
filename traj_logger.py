@@ -16,7 +16,9 @@ from typing import Optional, Dict, List
 
 @dataclass
 class TrajMeta:
-    """Metadata for a single trajectory.    
+    """Metadata for a single trajectory.
+    
+    Fields:
     - seed: Random seed used for this trajectory's environment initialization
     - workspace_bounds: Dictionary defining the valid (x, y, z) workspace limits for the end-effector
     - target_position: The (x, y, z) goal position that the object should be pushed to
@@ -68,10 +70,8 @@ class TrajectoryWriter:
         self.current_traj_dir: Optional[Path] = None
         
         # Buffers for current trajectory
-        self.ee_pos_states = []  # Actual EE positions
-        self.ee_pos_commands = []  # Commands from policy
-        self.ee_pos_before = []  # EE positions before step (for delta calculation)
-        self.ee_pos_after = []  # EE positions after step
+        self.ee_pos_states = []  # Actual EE positions (after step)
+        self.ee_pos_commands = []  # Absolute commanded positions from policy
         self.obj_pos_states = []
         self.joint_value_states = []
         self.joint_vel_commands = []
@@ -85,8 +85,6 @@ class TrajectoryWriter:
         # Clear buffers
         self.ee_pos_states = []
         self.ee_pos_commands = []
-        self.ee_pos_before = []
-        self.ee_pos_after = []
         self.obj_pos_states = []
         self.joint_value_states = []
         self.joint_vel_commands = []
@@ -95,8 +93,7 @@ class TrajectoryWriter:
     def record_step(
         self,
         env,
-        action: np.ndarray,
-        ee_pos_before: np.ndarray,
+        ee_pos_command: np.ndarray,
         ee_pos_after: np.ndarray,
         dq_cmd: np.ndarray,
         reward: float
@@ -105,21 +102,16 @@ class TrajectoryWriter:
         
         Args:
             env: The MuJoCo environment
-            action: Policy action (Cartesian command, shape=(3,))
-            ee_pos_before: EE position before this step (3,)
-            ee_pos_after: EE position after this step (3,)
+            ee_pos_command: Absolute commanded EE position (3,)
+            ee_pos_after: Actual EE position after this step (3,)
             dq_cmd: Joint velocity command from controller (shape=(6,))
             reward: Reward for this step
         """
-        # Store EE state (use after position as the "current" state)
+        # Store EE state (actual position after step)
         self.ee_pos_states.append(ee_pos_after.copy())
         
-        # Store command from policy
-        self.ee_pos_commands.append(action.copy())
-        
-        # Store before/after for delta calculation
-        self.ee_pos_before.append(ee_pos_before.copy())
-        self.ee_pos_after.append(ee_pos_after.copy())
+        # Store absolute commanded position
+        self.ee_pos_commands.append(ee_pos_command.copy())
         
         # Object position
         obj_pos = env.tape_roll.xpos.copy()
@@ -147,18 +139,15 @@ class TrajectoryWriter:
         # Convert lists to numpy arrays
         ee_pos_states = np.array(self.ee_pos_states, dtype=np.float64)  # (T, 3)
         ee_pos_commands = np.array(self.ee_pos_commands, dtype=np.float64)  # (T, 3)
-        ee_pos_before = np.array(self.ee_pos_before, dtype=np.float64)  # (T, 3)
-        ee_pos_after = np.array(self.ee_pos_after, dtype=np.float64)  # (T, 3)
         obj_pos_states = np.array(self.obj_pos_states, dtype=np.float64)  # (T, 3)
         joint_value_states = np.array(self.joint_value_states, dtype=np.float64)  # (T, 6)
         joint_vel_commands = np.array(self.joint_vel_commands, dtype=np.float64)  # (T, 6)
         rewards = np.array(self.rewards, dtype=np.float64)  # (T,)
         
-        # Since the policy outputs deltas (with fix_orientation=True):
-        # - ee_pos_commands = desired displacement from policy
-        # - ee_pos_actions = actual displacement that occurred
-        # - ee_pos_states = final EE position after step
-        ee_pos_actions = ee_pos_after - ee_pos_before  # (T, 3) - actual delta
+        # ee_pos_actions = tracking error between commanded and actual positions
+        # ee_pos_commands = absolute desired positions from policy
+        # ee_pos_states = actual observed positions after step
+        ee_pos_actions = ee_pos_commands - ee_pos_states  # (T, 3)
         
         # Calculate total reward for metadata
         meta.total_reward = float(np.sum(rewards))
@@ -171,7 +160,7 @@ class TrajectoryWriter:
         )
         np.savez_compressed(
             self.current_traj_dir / "ee_pos_actions.npz",
-            ee_pos_actions=ee_pos_actions  # Actual displacement: after - before
+            ee_pos_actions=ee_pos_actions  # Tracking error: commands - states
         )
         np.savez_compressed(
             self.current_traj_dir / "ee_pos_commands.npz",
