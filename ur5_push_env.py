@@ -142,7 +142,6 @@ class ur5(MujocoEnv):
             rot_w=float(self.ee_target_quat[0]),
         )
 
-
         for i in range(self.frame_skip):
             q_current = self.data.qpos[:6].copy()
             dq = self.cartesian_controller.cartesian_command(q_current, cmd)
@@ -157,6 +156,16 @@ class ur5(MujocoEnv):
         obs = self._get_obs()
         reward_dict = self.reward_dict() 
         reward = self.get_reward()
+
+        # prevent the object from falling 
+        obj_x, obj_y, obj_z = self.tape_roll.xpos 
+        object_dropped = obj_z < -0.14
+        object_off_table = (obj_x < 0.20 or obj_x > 0.80) or (obj_y < -0.59 or obj_y > 0.59)
+
+        truncated = truncated or object_dropped or object_off_table
+        
+        if object_dropped or object_off_table:
+            reward -= 200
 
         # only step should change the actual env 
         self.prev_tape_roll_pos = prev_tape
