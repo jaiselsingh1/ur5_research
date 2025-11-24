@@ -157,16 +157,6 @@ class ur5(MujocoEnv):
         reward_dict = self.reward_dict() 
         reward = self.get_reward()
 
-        # prevent the object from falling 
-        obj_x, obj_y, obj_z = self.tape_roll.xpos 
-        object_dropped = obj_z < -0.14
-        object_off_table = (obj_x < 0.20 or obj_x > 0.80) or (obj_y < -0.59 or obj_y > 0.59)
-
-        truncated = truncated or object_dropped or object_off_table
-        
-        if object_dropped or object_off_table:
-            reward -= 200
-
         # only step should change the actual env 
         self.prev_tape_roll_pos = prev_tape
         self.prev_ee_to_obj = prev_ee_to_obj
@@ -179,6 +169,16 @@ class ur5(MujocoEnv):
         truncated = np.linalg.norm(self.ee_finger.xpos - tape_roll_xpos) > 0.8
         if truncated:
             reward -= 100
+
+        # prevent the object from falling 
+        obj_x, obj_y, obj_z = self.tape_roll.xpos 
+        object_dropped = obj_z < -0.14
+        object_off_table = (obj_x < 0.20 or obj_x > 0.80) or (obj_y < -0.59 or obj_y > 0.59)
+
+        truncated = truncated or object_dropped or object_off_table
+        
+        if object_dropped or object_off_table:
+            reward -= 200
 
         return obs, reward, terminated, truncated, reward_dict
 
