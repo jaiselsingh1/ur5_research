@@ -1,5 +1,7 @@
 
 import gymnasium as gym
+import sys 
+sys.path.append(".")
 import ur5_push_env as ur5
 import numpy as np
 import time

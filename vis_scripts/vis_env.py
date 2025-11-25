@@ -1,4 +1,6 @@
 import time 
+import sys 
+sys.path.append(".")
 import ur5_push_env
 # env = ur5_push_env.ur5(render_mode="rgb_array")
 import numpy as np
@@ -7,8 +9,9 @@ from sbx import PPO
 import imageio 
 
 env = ur5_push_env.ur5(render_mode="rgb_array")
-policy = PPO.load("./logs/best_model.zip")
-writer = imageio.get_writer("ur5_policy.mp4", fps=30, codec="libx264")
+# policy = PPO.load("./logs/best_model.zip")
+policy = PPO.load("./trained_models/ppo_ur5_exi3c1xw.zip")
+writer = imageio.get_writer("ur5_policy_new.mp4", fps=30, codec="libx264")
 
 num_rollouts = 10
 steps_per_rollout = 500

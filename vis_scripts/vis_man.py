@@ -1,4 +1,6 @@
 import mujoco 
+import sys 
+sys.path.append("..")
 import ur5_push_env as ur5 
 import cartesian_controller
 import numpy as np 

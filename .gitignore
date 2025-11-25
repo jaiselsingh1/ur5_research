@@ -14,11 +14,15 @@ logs/
 
 # misc 
 saved_data/
-ur5_push_test.zip
+filtered_data/
 
-trained_models.zip
-ur5_policy.mp4
 trained_models/
 trained_models.pt
-ppo_cartpole.zip
-best_model.zip
+
+
+# all mp4s 
+*.mp4
+# all zips 
+*.zip
+*.npz
+*.png

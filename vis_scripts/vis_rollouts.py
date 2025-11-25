@@ -1,4 +1,6 @@
 import time
+import sys 
+sys.path.append(".")
 import ur5_push_env
 import numpy as np
 import mujoco as mj
@@ -9,7 +11,7 @@ env = ur5_push_env.ur5(render_mode="human", fix_orientation=True)
 obs, _ = env.reset()
 
 # load model
-model = PPO.load("./trained_models/ppo_ur5_cbge20dt.zip")
+model = PPO.load("./trained_models/ppo_ur5_exi3c1xw.zip")
 # action = np.zeros(6)
 
 for i in range(10000):

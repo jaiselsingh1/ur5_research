@@ -26,4 +26,6 @@ dependencies = [
     "tqdm>=4.67.1",
     "wandb>=0.21.3",
     "dataclasses>=0.8",
+    "pathlib>=1.0.1",
+    "typing>=3.10.0.0",
 ]
